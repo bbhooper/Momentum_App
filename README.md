@@ -6,4 +6,4 @@ Momentum scaffold for the Flutter app.
 
 - Install Flutter
 - Run `flutter pub get`
-- Run `flutter run -d chrome`
+- Run `flutter run -d chrome --web-port 58381`

@@ -21,10 +21,9 @@ void main() {
 
   group('AppDatabase', () {
     // Confirms that the initial database schema is version 1.
-    test('uses schema version 1', () {
-      expect(database.schemaVersion, 1);
+    test('uses schema version 2', () {
+      expect(database.schemaVersion, 2);
     });
-
     // Confirms that requesting a previously unused date creates its daily
     // record with the expected defaults.
     test('creates a daily record for a new date', () async {
