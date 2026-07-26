@@ -5,8 +5,7 @@ import '../../../app/providers/current_day_provider.dart';
 import '../data/repositories/sleep_repository.dart';
 import 'sleep_form_state.dart';
 
-class SleepFormController
-    extends AsyncNotifier<SleepFormState> {
+class SleepFormController extends AsyncNotifier<SleepFormState> {
   late SleepRepository _repository;
 
   @override
@@ -16,9 +15,7 @@ class SleepFormController
 
     _repository = SleepRepository(database);
 
-    final existingLog = await _repository.findSleepLog(
-      currentDay.dateKey,
-    );
+    final existingLog = await _repository.findSleepLog(currentDay.dateKey);
 
     if (existingLog == null) {
       return SleepFormState.empty(currentDay);
@@ -48,10 +45,41 @@ class SleepFormController
     );
   }
 
+  /// Records a user-entered sleep-latency value.
   void setSleepOnsetAdjustmentMinutes(int value) {
     _update(
       (form) => form.copyWith(
         sleepOnsetAdjustmentMinutes: value,
+        sleepLatencySource: 'manual',
+        message: null,
+      ),
+    );
+  }
+
+  /// Restores the default 15-minute sleep-latency estimate.
+  void useEstimatedSleepLatency() {
+    _update(
+      (form) => form.copyWith(
+        sleepOnsetAdjustmentMinutes: 15,
+        sleepLatencySource: 'scientificEstimate',
+        message: null,
+      ),
+    );
+  }
+
+  void setAwakeningCount(int value) {
+    _update(
+      (form) => form.copyWith(
+        awakeningCount: value,
+        message: null,
+      ),
+    );
+  }
+
+  void setAwakeDuringNightMinutes(int value) {
+    _update(
+      (form) => form.copyWith(
+        awakeDuringNightMinutes: value,
         message: null,
       ),
     );
@@ -114,8 +142,10 @@ class SleepFormController
         wakeTime: form.wakeTime,
         sleepOnsetAdjustmentMinutes:
             form.sleepOnsetAdjustmentMinutes,
-        manualDurationMinutes:
-            form.manualDurationMinutes,
+        sleepLatencySource: form.sleepLatencySource,
+        awakeningCount: form.awakeningCount,
+        awakeDuringNightMinutes: form.awakeDuringNightMinutes,
+        manualDurationMinutes: form.manualDurationMinutes,
         sleepQuality: form.sleepQuality,
         energy: form.energy,
         notes: form.notes,
@@ -125,9 +155,7 @@ class SleepFormController
         SleepFormState.fromLog(
           date: form.date,
           log: savedLog,
-        ).copyWith(
-          message: 'Sleep saved.',
-        ),
+        ).copyWith(message: 'Sleep saved.'),
       );
 
       return true;
@@ -177,9 +205,9 @@ class SleepFormController
       }
 
       state = AsyncData(
-        SleepFormState.empty(form.date).copyWith(
-          message: 'Sleep log deleted.',
-        ),
+        SleepFormState.empty(
+          form.date,
+        ).copyWith(message: 'Sleep log deleted.'),
       );
 
       return true;

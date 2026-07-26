@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class AppShell extends StatelessWidget {
-  const AppShell({
-    super.key,
-    required this.currentPath,
-    required this.child,
-  });
+  const AppShell({super.key, required this.currentPath, required this.child});
 
   final String currentPath;
   final Widget child;

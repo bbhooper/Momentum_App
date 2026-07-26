@@ -36,9 +36,7 @@ class _MomentumAppState extends ConsumerState<MomentumApp> {
   Widget _withThemeToggle(BuildContext context, Widget? child) {
     return Stack(
       children: [
-        Positioned.fill(
-          child: child ?? const SizedBox.shrink(),
-        ),
+        Positioned.fill(child: child ?? const SizedBox.shrink()),
         Positioned(
           top: MediaQuery.paddingOf(context).top + 8,
           right: 12,
@@ -68,11 +66,7 @@ class _MomentumAppState extends ConsumerState<MomentumApp> {
         darkTheme: MomentumTheme.inkDark,
         themeMode: _themeMode,
         builder: _withThemeToggle,
-        home: const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
+        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       ),
       error: (error, stackTrace) => MaterialApp(
         title: 'Momentum',

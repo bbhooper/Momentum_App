@@ -42,10 +42,14 @@ void main() {
       expect(form.date, testDate);
       expect(form.bedtime, DateTime(2026, 7, 20, 22));
       expect(form.wakeTime, DateTime(2026, 7, 21, 7));
-      expect(form.sleepOnsetAdjustmentMinutes, 0);
-      expect(form.calculatedDurationMinutes, 540);
+      expect(form.sleepOnsetAdjustmentMinutes, 15);
+      expect(form.sleepLatencySource, 'scientificEstimate');
+      expect(form.awakeningCount, 0);
+      expect(form.awakeDuringNightMinutes, 0);
+      expect(form.timeInBedMinutes, 540);
+      expect(form.calculatedDurationMinutes, 525);
       expect(form.manualDurationMinutes, isNull);
-      expect(form.effectiveDurationMinutes, 540);
+      expect(form.effectiveDurationMinutes, 525);
       expect(form.sleepQuality, 3);
       expect(form.energy, 3);
       expect(form.notes, isEmpty);
@@ -62,6 +66,9 @@ void main() {
         bedtime: DateTime(2026, 7, 20, 22, 30),
         wakeTime: DateTime(2026, 7, 21, 7),
         sleepOnsetAdjustmentMinutes: 30,
+        sleepLatencySource: 'manual',
+        awakeningCount: 2,
+        awakeDuringNightMinutes: 20,
         manualDurationMinutes: 450,
         sleepQuality: 4,
         energy: 2,
@@ -74,7 +81,10 @@ void main() {
       expect(form.bedtime, savedLog.bedtime);
       expect(form.wakeTime, savedLog.wakeTime);
       expect(form.sleepOnsetAdjustmentMinutes, 30);
-      expect(form.calculatedDurationMinutes, 480);
+      expect(form.sleepLatencySource, 'manual');
+      expect(form.awakeningCount, 2);
+      expect(form.awakeDuringNightMinutes, 20);
+      expect(form.calculatedDurationMinutes, 460);
       expect(form.manualDurationMinutes, 450);
       expect(form.effectiveDurationMinutes, 450);
       expect(form.sleepQuality, 4);
@@ -93,7 +103,9 @@ void main() {
       controller.setBedtime(DateTime(2026, 7, 20, 22, 30));
       controller.setWakeTime(DateTime(2026, 7, 21, 7, 30));
       controller.setSleepOnsetAdjustmentMinutes(45);
-      controller.setManualDurationMinutes(480);
+      controller.setAwakeningCount(2);
+      controller.setAwakeDuringNightMinutes(30);
+      controller.setManualDurationMinutes(450);
       controller.setSleepQuality(5);
       controller.setEnergy(4);
       controller.setNotes('Slept well.');
@@ -104,12 +116,58 @@ void main() {
       expect(form.wakeTime, DateTime(2026, 7, 21, 7, 30));
       expect(form.timeInBedMinutes, 540);
       expect(form.sleepOnsetAdjustmentMinutes, 45);
-      expect(form.calculatedDurationMinutes, 495);
-      expect(form.manualDurationMinutes, 480);
-      expect(form.effectiveDurationMinutes, 480);
+      expect(form.sleepLatencySource, 'manual');
+      expect(form.awakeningCount, 2);
+      expect(form.awakeDuringNightMinutes, 30);
+      expect(form.calculatedDurationMinutes, 465);
+      expect(form.manualDurationMinutes, 450);
+      expect(form.effectiveDurationMinutes, 450);
       expect(form.sleepQuality, 5);
       expect(form.energy, 4);
       expect(form.notes, 'Slept well.');
+    });
+
+    test('editing sleep latency changes its source to manual', () async {
+      await loadForm();
+
+      final controller = container.read(sleepFormControllerProvider.notifier);
+
+      controller.setSleepOnsetAdjustmentMinutes(25);
+
+      final form = container.read(sleepFormControllerProvider).requireValue;
+
+      expect(form.sleepOnsetAdjustmentMinutes, 25);
+      expect(form.sleepLatencySource, 'manual');
+    });
+
+    test('can restore the estimated sleep latency', () async {
+      await loadForm();
+
+      final controller = container.read(sleepFormControllerProvider.notifier);
+
+      controller.setSleepOnsetAdjustmentMinutes(30);
+      controller.useEstimatedSleepLatency();
+
+      final form = container.read(sleepFormControllerProvider).requireValue;
+
+      expect(form.sleepOnsetAdjustmentMinutes, 15);
+      expect(form.sleepLatencySource, 'scientificEstimate');
+      expect(form.calculatedDurationMinutes, 525);
+    });
+
+    test('recalculates duration when overnight awake time changes', () async {
+      await loadForm();
+
+      final controller = container.read(sleepFormControllerProvider.notifier);
+
+      controller.setAwakeningCount(3);
+      controller.setAwakeDuringNightMinutes(45);
+
+      final form = container.read(sleepFormControllerProvider).requireValue;
+
+      expect(form.awakeningCount, 3);
+      expect(form.awakeDuringNightMinutes, 45);
+      expect(form.calculatedDurationMinutes, 480);
     });
 
     test('can clear a manual duration', () async {
@@ -151,7 +209,7 @@ void main() {
   });
 
   group('saving', () {
-    test('saves a new sleep log', () async {
+    test('saves a new sleep log with the new fields', () async {
       await loadForm();
 
       final controller = container.read(sleepFormControllerProvider.notifier);
@@ -159,11 +217,14 @@ void main() {
       controller.setBedtime(DateTime(2026, 7, 20, 22, 30));
       controller.setWakeTime(DateTime(2026, 7, 21, 7));
       controller.setSleepOnsetAdjustmentMinutes(30);
+      controller.setAwakeningCount(1);
+      controller.setAwakeDuringNightMinutes(20);
       controller.setSleepQuality(4);
       controller.setEnergy(3);
       controller.setNotes('  Woke once.  ');
 
       final wasSaved = await controller.save();
+
       final form = container.read(sleepFormControllerProvider).requireValue;
 
       final repository = SleepRepository(database);
@@ -174,11 +235,37 @@ void main() {
       expect(form.savedLogId, savedLog!.id);
       expect(form.hasSavedLog, isTrue);
       expect(form.isSaving, isFalse);
-      expect(form.calculatedDurationMinutes, 480);
+      expect(form.sleepOnsetAdjustmentMinutes, 30);
+      expect(form.sleepLatencySource, 'manual');
+      expect(form.awakeningCount, 1);
+      expect(form.awakeDuringNightMinutes, 20);
+      expect(form.calculatedDurationMinutes, 460);
       expect(form.sleepQuality, 4);
       expect(form.energy, 3);
       expect(form.notes, 'Woke once.');
       expect(form.message, 'Sleep saved.');
+
+      expect(savedLog.sleepLatencySource, 'manual');
+      expect(savedLog.awakeningCount, 1);
+      expect(savedLog.awakeDuringNightMinutes, 20);
+      expect(savedLog.calculatedDurationMinutes, 460);
+    });
+
+    test('saves the default sleep-latency estimate', () async {
+      await loadForm();
+
+      final controller = container.read(sleepFormControllerProvider.notifier);
+
+      expect(await controller.save(), isTrue);
+
+      final savedLog = await SleepRepository(
+        database,
+      ).findSleepLog(testDate.dateKey);
+
+      expect(savedLog, isNotNull);
+      expect(savedLog!.sleepOnsetAdjustmentMinutes, 15);
+      expect(savedLog.sleepLatencySource, 'scientificEstimate');
+      expect(savedLog.calculatedDurationMinutes, 525);
     });
 
     test('saving again updates the existing log', () async {
@@ -195,6 +282,9 @@ void main() {
           .read(sleepFormControllerProvider)
           .requireValue;
 
+      controller.setSleepOnsetAdjustmentMinutes(20);
+      controller.setAwakeningCount(2);
+      controller.setAwakeDuringNightMinutes(30);
       controller.setSleepQuality(5);
       controller.setEnergy(4);
       controller.setNotes('Updated entry.');
@@ -209,6 +299,11 @@ void main() {
 
       expect(secondForm.savedLogId, firstForm.savedLogId);
       expect(allLogs, hasLength(1));
+      expect(secondForm.sleepOnsetAdjustmentMinutes, 20);
+      expect(secondForm.sleepLatencySource, 'manual');
+      expect(secondForm.awakeningCount, 2);
+      expect(secondForm.awakeDuringNightMinutes, 30);
+      expect(secondForm.calculatedDurationMinutes, 490);
       expect(secondForm.sleepQuality, 5);
       expect(secondForm.energy, 4);
       expect(secondForm.notes, 'Updated entry.');
@@ -243,6 +338,7 @@ void main() {
       controller.setSleepQuality(6);
 
       final wasSaved = await controller.save();
+
       final form = container.read(sleepFormControllerProvider).requireValue;
 
       expect(wasSaved, isFalse);
@@ -256,6 +352,36 @@ void main() {
       expect(savedLog, isNull);
     });
 
+    test('rejects a negative awakening count', () async {
+      await loadForm();
+
+      final controller = container.read(sleepFormControllerProvider.notifier);
+
+      controller.setAwakeningCount(-1);
+
+      final wasSaved = await controller.save();
+
+      final form = container.read(sleepFormControllerProvider).requireValue;
+
+      expect(wasSaved, isFalse);
+      expect(form.message, 'Number of awakenings cannot be negative.');
+    });
+
+    test('rejects negative time awake during the night', () async {
+      await loadForm();
+
+      final controller = container.read(sleepFormControllerProvider.notifier);
+
+      controller.setAwakeDuringNightMinutes(-1);
+
+      final wasSaved = await controller.save();
+
+      final form = container.read(sleepFormControllerProvider).requireValue;
+
+      expect(wasSaved, isFalse);
+      expect(form.message, 'Time awake during the night cannot be negative.');
+    });
+
     test('rejects an invalid calculated duration', () async {
       await loadForm();
 
@@ -264,6 +390,7 @@ void main() {
       controller.setSleepOnsetAdjustmentMinutes(540);
 
       final wasSaved = await controller.save();
+
       final form = container.read(sleepFormControllerProvider).requireValue;
 
       expect(wasSaved, isFalse);
@@ -279,6 +406,10 @@ void main() {
         dateKey: testDate.dateKey,
         bedtime: DateTime(2026, 7, 20, 22, 30),
         wakeTime: DateTime(2026, 7, 21, 7),
+        sleepOnsetAdjustmentMinutes: 25,
+        sleepLatencySource: 'manual',
+        awakeningCount: 2,
+        awakeDuringNightMinutes: 30,
         sleepQuality: 5,
         energy: 4,
         notes: 'Saved entry.',
@@ -291,12 +422,18 @@ void main() {
       final controller = container.read(sleepFormControllerProvider.notifier);
 
       final wasDeleted = await controller.delete();
+
       final resetForm = container
           .read(sleepFormControllerProvider)
           .requireValue;
 
       expect(wasDeleted, isTrue);
       expect(resetForm.hasSavedLog, isFalse);
+      expect(resetForm.sleepOnsetAdjustmentMinutes, 15);
+      expect(resetForm.sleepLatencySource, 'scientificEstimate');
+      expect(resetForm.awakeningCount, 0);
+      expect(resetForm.awakeDuringNightMinutes, 0);
+      expect(resetForm.calculatedDurationMinutes, 525);
       expect(resetForm.sleepQuality, 3);
       expect(resetForm.energy, 3);
       expect(resetForm.notes, isEmpty);
@@ -344,16 +481,22 @@ void main() {
       );
     });
 
-    test('reload restores the database values', () async {
+    test('reload restores all database values', () async {
       await loadForm();
 
       final controller = container.read(sleepFormControllerProvider.notifier);
 
+      controller.setSleepOnsetAdjustmentMinutes(25);
+      controller.setAwakeningCount(2);
+      controller.setAwakeDuringNightMinutes(30);
       controller.setSleepQuality(5);
       controller.setNotes('Saved value');
 
       expect(await controller.save(), isTrue);
 
+      controller.useEstimatedSleepLatency();
+      controller.setAwakeningCount(0);
+      controller.setAwakeDuringNightMinutes(0);
       controller.setSleepQuality(1);
       controller.setNotes('Unsaved change');
 
@@ -361,6 +504,10 @@ void main() {
 
       final form = container.read(sleepFormControllerProvider).requireValue;
 
+      expect(form.sleepOnsetAdjustmentMinutes, 25);
+      expect(form.sleepLatencySource, 'manual');
+      expect(form.awakeningCount, 2);
+      expect(form.awakeDuringNightMinutes, 30);
       expect(form.sleepQuality, 5);
       expect(form.notes, 'Saved value');
       expect(form.message, isNull);

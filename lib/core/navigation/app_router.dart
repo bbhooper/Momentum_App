@@ -17,10 +17,8 @@ class AppRouter {
     initialLocation: '/',
     routes: [
       ShellRoute(
-        builder: (_, state, child) => AppShell(
-          currentPath: state.uri.path,
-          child: child,
-  ),
+        builder: (_, state, child) =>
+            AppShell(currentPath: state.uri.path, child: child),
         routes: [
           GoRoute(
             path: '/',

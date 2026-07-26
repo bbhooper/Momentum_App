@@ -4,9 +4,6 @@ import 'sleep_form_controller.dart';
 import 'sleep_form_state.dart';
 
 final sleepFormControllerProvider =
-    AsyncNotifierProvider<
-      SleepFormController,
-      SleepFormState
-    >(
+    AsyncNotifierProvider<SleepFormController, SleepFormState>(
       SleepFormController.new,
     );

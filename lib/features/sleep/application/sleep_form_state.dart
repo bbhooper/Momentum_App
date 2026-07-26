@@ -7,7 +7,10 @@ class SleepFormState {
     required this.date,
     required this.bedtime,
     required this.wakeTime,
-    this.sleepOnsetAdjustmentMinutes = 0,
+    this.sleepOnsetAdjustmentMinutes = 15,
+    this.sleepLatencySource = 'scientificEstimate',
+    this.awakeningCount = 0,
+    this.awakeDuringNightMinutes = 0,
     this.manualDurationMinutes,
     this.sleepQuality = 3,
     this.energy = 3,
@@ -19,16 +22,8 @@ class SleepFormState {
   });
 
   factory SleepFormState.empty(LocalDate date) {
-    final wakeTime = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      7,
-    );
-
-    final bedtime = wakeTime.subtract(
-      const Duration(hours: 9),
-    );
+    final wakeTime = DateTime(date.year, date.month, date.day, 7);
+    final bedtime = wakeTime.subtract(const Duration(hours: 9));
 
     return SleepFormState(
       date: date,
@@ -45,8 +40,10 @@ class SleepFormState {
       date: date,
       bedtime: log.bedtime,
       wakeTime: log.wakeTime,
-      sleepOnsetAdjustmentMinutes:
-          log.sleepOnsetAdjustmentMinutes,
+      sleepOnsetAdjustmentMinutes: log.sleepOnsetAdjustmentMinutes,
+      sleepLatencySource: log.sleepLatencySource,
+      awakeningCount: log.awakeningCount,
+      awakeDuringNightMinutes: log.awakeDuringNightMinutes,
       manualDurationMinutes: log.manualDurationMinutes,
       sleepQuality: log.sleepQuality,
       energy: log.energy,
@@ -58,8 +55,22 @@ class SleepFormState {
   final LocalDate date;
   final DateTime bedtime;
   final DateTime wakeTime;
+
+  /// Estimated number of minutes between going to bed and falling asleep.
   final int sleepOnsetAdjustmentMinutes;
+
+  /// Records whether latency is the default estimate or a user-entered value.
+  final String sleepLatencySource;
+
+  /// Number of remembered awakenings during the night.
+  final int awakeningCount;
+
+  /// Estimated total time spent awake during those awakenings.
+  final int awakeDuringNightMinutes;
+
+  /// Optional user correction that overrides the calculated duration.
   final int? manualDurationMinutes;
+
   final int sleepQuality;
   final int energy;
   final String notes;
@@ -72,11 +83,12 @@ class SleepFormState {
 
   bool get isBusy => isSaving || isDeleting;
 
-  int get timeInBedMinutes =>
-      wakeTime.difference(bedtime).inMinutes;
+  int get timeInBedMinutes => wakeTime.difference(bedtime).inMinutes;
 
   int get calculatedDurationMinutes =>
-      timeInBedMinutes - sleepOnsetAdjustmentMinutes;
+      timeInBedMinutes -
+      sleepOnsetAdjustmentMinutes -
+      awakeDuringNightMinutes;
 
   int get effectiveDurationMinutes =>
       manualDurationMinutes ?? calculatedDurationMinutes;
@@ -86,6 +98,9 @@ class SleepFormState {
     DateTime? bedtime,
     DateTime? wakeTime,
     int? sleepOnsetAdjustmentMinutes,
+    String? sleepLatencySource,
+    int? awakeningCount,
+    int? awakeDuringNightMinutes,
     Object? manualDurationMinutes = _notProvided,
     int? sleepQuality,
     int? energy,
@@ -100,12 +115,15 @@ class SleepFormState {
       bedtime: bedtime ?? this.bedtime,
       wakeTime: wakeTime ?? this.wakeTime,
       sleepOnsetAdjustmentMinutes:
-          sleepOnsetAdjustmentMinutes ??
-          this.sleepOnsetAdjustmentMinutes,
-      manualDurationMinutes:
-          identical(manualDurationMinutes, _notProvided)
-              ? this.manualDurationMinutes
-              : manualDurationMinutes as int?,
+          sleepOnsetAdjustmentMinutes ?? this.sleepOnsetAdjustmentMinutes,
+      sleepLatencySource:
+          sleepLatencySource ?? this.sleepLatencySource,
+      awakeningCount: awakeningCount ?? this.awakeningCount,
+      awakeDuringNightMinutes:
+          awakeDuringNightMinutes ?? this.awakeDuringNightMinutes,
+      manualDurationMinutes: identical(manualDurationMinutes, _notProvided)
+          ? this.manualDurationMinutes
+          : manualDurationMinutes as int?,
       sleepQuality: sleepQuality ?? this.sleepQuality,
       energy: energy ?? this.energy,
       notes: notes ?? this.notes,

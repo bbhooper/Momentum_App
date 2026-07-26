@@ -8,25 +8,34 @@ class SleepRepository {
 
   final AppDatabase _database;
 
-  /// Calculates sleep duration after subtracting the estimated time taken
-  /// to fall asleep.
+  /// Calculates actual sleep duration by subtracting sleep latency and time
+  /// awake during the night from the total time in bed.
   int calculateDurationMinutes({
     required DateTime bedtime,
     required DateTime wakeTime,
     int sleepOnsetAdjustmentMinutes = 0,
+    int awakeDuringNightMinutes = 0,
   }) {
     if (!wakeTime.isAfter(bedtime)) {
       throw const SleepValidationException('Wake time must be after bedtime.');
     }
 
     if (sleepOnsetAdjustmentMinutes < 0) {
+      throw const SleepValidationException('Sleep latency cannot be negative.');
+    }
+
+    if (awakeDuringNightMinutes < 0) {
       throw const SleepValidationException(
-        'Sleep-onset adjustment cannot be negative.',
+        'Time awake during the night cannot be negative.',
       );
     }
 
     final timeInBedMinutes = wakeTime.difference(bedtime).inMinutes;
-    final durationMinutes = timeInBedMinutes - sleepOnsetAdjustmentMinutes;
+
+    final durationMinutes =
+        timeInBedMinutes -
+        sleepOnsetAdjustmentMinutes -
+        awakeDuringNightMinutes;
 
     if (durationMinutes <= 0) {
       throw const SleepValidationException(
@@ -39,20 +48,30 @@ class SleepRepository {
 
   /// Creates or updates the main sleep log for a Momentum date.
   ///
-  /// Saving repeatedly for the same date updates the existing record rather
-  /// than creating duplicate sleep logs.
+  /// Repeatedly saving the same date updates its existing record instead of
+  /// creating duplicate overnight sleep logs.
   Future<SleepLog> saveSleepLog({
     required String dateKey,
     required DateTime bedtime,
     required DateTime wakeTime,
     required int sleepQuality,
     required int energy,
-    int sleepOnsetAdjustmentMinutes = 0,
+    int sleepOnsetAdjustmentMinutes = 15,
+    String sleepLatencySource = 'scientificEstimate',
+    int awakeningCount = 0,
+    int awakeDuringNightMinutes = 0,
     int? manualDurationMinutes,
     String? notes,
   }) async {
     _validateScore('Sleep quality', sleepQuality);
     _validateScore('Energy', energy);
+    _validateSleepLatencySource(sleepLatencySource);
+
+    if (awakeningCount < 0) {
+      throw const SleepValidationException(
+        'Number of awakenings cannot be negative.',
+      );
+    }
 
     if (manualDurationMinutes != null && manualDurationMinutes <= 0) {
       throw const SleepValidationException(
@@ -64,6 +83,7 @@ class SleepRepository {
       bedtime: bedtime,
       wakeTime: wakeTime,
       sleepOnsetAdjustmentMinutes: sleepOnsetAdjustmentMinutes,
+      awakeDuringNightMinutes: awakeDuringNightMinutes,
     );
 
     final dailyRecord = await _database.ensureDailyRecord(dateKey);
@@ -85,11 +105,15 @@ class SleepRepository {
               bedtime: bedtime,
               wakeTime: wakeTime,
               sleepOnsetAdjustmentMinutes: Value(sleepOnsetAdjustmentMinutes),
+              sleepLatencySource: Value(sleepLatencySource),
+              awakeningCount: Value(awakeningCount),
+              awakeDuringNightMinutes: Value(awakeDuringNightMinutes),
               calculatedDurationMinutes: calculatedDurationMinutes,
               manualDurationMinutes: Value(manualDurationMinutes),
               sleepQuality: sleepQuality,
               energy: energy,
               notes: Value(normalisedNotes),
+              updatedAt: Value(now),
             ),
           );
 
@@ -105,6 +129,9 @@ class SleepRepository {
         bedtime: Value(bedtime),
         wakeTime: Value(wakeTime),
         sleepOnsetAdjustmentMinutes: Value(sleepOnsetAdjustmentMinutes),
+        sleepLatencySource: Value(sleepLatencySource),
+        awakeningCount: Value(awakeningCount),
+        awakeDuringNightMinutes: Value(awakeDuringNightMinutes),
         calculatedDurationMinutes: Value(calculatedDurationMinutes),
         manualDurationMinutes: Value(manualDurationMinutes),
         sleepQuality: Value(sleepQuality),
@@ -177,6 +204,14 @@ class SleepRepository {
   void _validateScore(String name, int value) {
     if (value < 1 || value > 5) {
       throw SleepValidationException('$name must be between 1 and 5.');
+    }
+  }
+
+  void _validateSleepLatencySource(String source) {
+    const supportedSources = {'scientificEstimate', 'manual'};
+
+    if (!supportedSources.contains(source)) {
+      throw const SleepValidationException('Sleep latency source is invalid.');
     }
   }
 

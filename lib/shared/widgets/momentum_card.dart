@@ -26,15 +26,10 @@ class MomentumCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.divider,
-          width: 0.8,
-        ),
+        border: Border.all(color: colors.divider, width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: colors.primaryInk.withValues(
-              alpha: isDark ? 0.10 : 0.045,
-            ),
+            color: colors.primaryInk.withValues(alpha: isDark ? 0.10 : 0.045),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -48,10 +43,7 @@ class MomentumCard extends StatelessWidget {
             opacity: isDark ? 0.027 : 0.022,
             seed: 43,
           ),
-          child: Padding(
-            padding: padding,
-            child: child,
-          ),
+          child: Padding(padding: padding, child: child),
         ),
       ),
     );
