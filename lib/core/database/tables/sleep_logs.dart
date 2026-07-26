@@ -4,8 +4,8 @@ import 'daily_records.dart';
 
 /// Stores the main overnight sleep log associated with a Momentum day.
 ///
-/// Each daily record can have at most one main sleep log. Naps use a separate
-/// table because multiple naps can occur on the same day.
+/// The log belongs to the date on which the user woke up. Each daily record can
+/// have at most one main overnight sleep log.
 class SleepLogs extends Table {
   IntColumn get id => integer().autoIncrement()();
 
@@ -17,14 +17,34 @@ class SleepLogs extends Table {
 
   DateTimeColumn get wakeTime => dateTime()();
 
-  /// Estimated number of minutes between bedtime and falling asleep.
+  /// Estimated minutes between going to bed and falling asleep.
+  ///
+  /// Momentum currently applies a 15-minute scientific fallback. A future
+  /// health-device value can replace it for an individual night.
   IntColumn get sleepOnsetAdjustmentMinutes =>
       integer().withDefault(const Constant(0))();
 
-  /// Duration calculated from bedtime, wake time and onset adjustment.
+  /// Identifies where the sleep-onset estimate came from.
+  ///
+  /// Initial value: scientificEstimate
+  /// Future values: healthDevice or manual
+  TextColumn get sleepLatencySource =>
+      text().withDefault(const Constant('scientificEstimate'))();
+
+  /// Number of remembered awakenings during the night.
+  IntColumn get awakeningCount => integer()
+      .withDefault(const Constant(0))
+      .check(const CustomExpression<bool>('awakening_count >= 0'))();
+
+  /// Total estimated minutes spent awake after initially falling asleep.
+  IntColumn get awakeDuringNightMinutes => integer()
+      .withDefault(const Constant(0))
+      .check(const CustomExpression<bool>('awake_during_night_minutes >= 0'))();
+
+  /// Bed-to-wake duration minus sleep latency and awake time.
   IntColumn get calculatedDurationMinutes => integer()();
 
-  /// Optional correction entered by the user.
+  /// Optional future correction entered manually by the user.
   IntColumn get manualDurationMinutes => integer().nullable()();
 
   IntColumn get sleepQuality => integer()

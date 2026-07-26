@@ -494,6 +494,45 @@ class $SleepLogsTable extends SleepLogs
         requiredDuringInsert: false,
         defaultValue: const Constant(0),
       );
+  static const VerificationMeta _sleepLatencySourceMeta =
+      const VerificationMeta('sleepLatencySource');
+  @override
+  late final GeneratedColumn<String> sleepLatencySource =
+      GeneratedColumn<String>(
+        'sleep_latency_source',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('scientificEstimate'),
+      );
+  static const VerificationMeta _awakeningCountMeta = const VerificationMeta(
+    'awakeningCount',
+  );
+  @override
+  late final GeneratedColumn<int> awakeningCount = GeneratedColumn<int>(
+    'awakening_count',
+    aliasedName,
+    false,
+    check: () => const CustomExpression<bool>('awakening_count >= 0'),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _awakeDuringNightMinutesMeta =
+      const VerificationMeta('awakeDuringNightMinutes');
+  @override
+  late final GeneratedColumn<int> awakeDuringNightMinutes =
+      GeneratedColumn<int>(
+        'awake_during_night_minutes',
+        aliasedName,
+        false,
+        check: () =>
+            const CustomExpression<bool>('awake_during_night_minutes >= 0'),
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      );
   static const VerificationMeta _calculatedDurationMinutesMeta =
       const VerificationMeta('calculatedDurationMinutes');
   @override
@@ -577,6 +616,9 @@ class $SleepLogsTable extends SleepLogs
     bedtime,
     wakeTime,
     sleepOnsetAdjustmentMinutes,
+    sleepLatencySource,
+    awakeningCount,
+    awakeDuringNightMinutes,
     calculatedDurationMinutes,
     manualDurationMinutes,
     sleepQuality,
@@ -633,6 +675,33 @@ class $SleepLogsTable extends SleepLogs
         sleepOnsetAdjustmentMinutes.isAcceptableOrUnknown(
           data['sleep_onset_adjustment_minutes']!,
           _sleepOnsetAdjustmentMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sleep_latency_source')) {
+      context.handle(
+        _sleepLatencySourceMeta,
+        sleepLatencySource.isAcceptableOrUnknown(
+          data['sleep_latency_source']!,
+          _sleepLatencySourceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('awakening_count')) {
+      context.handle(
+        _awakeningCountMeta,
+        awakeningCount.isAcceptableOrUnknown(
+          data['awakening_count']!,
+          _awakeningCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('awake_during_night_minutes')) {
+      context.handle(
+        _awakeDuringNightMinutesMeta,
+        awakeDuringNightMinutes.isAcceptableOrUnknown(
+          data['awake_during_night_minutes']!,
+          _awakeDuringNightMinutesMeta,
         ),
       );
     }
@@ -722,6 +791,18 @@ class $SleepLogsTable extends SleepLogs
         DriftSqlType.int,
         data['${effectivePrefix}sleep_onset_adjustment_minutes'],
       )!,
+      sleepLatencySource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sleep_latency_source'],
+      )!,
+      awakeningCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}awakening_count'],
+      )!,
+      awakeDuringNightMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}awake_during_night_minutes'],
+      )!,
       calculatedDurationMinutes: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}calculated_duration_minutes'],
@@ -765,13 +846,28 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
   final DateTime bedtime;
   final DateTime wakeTime;
 
-  /// Estimated number of minutes between bedtime and falling asleep.
+  /// Estimated minutes between going to bed and falling asleep.
+  ///
+  /// Momentum currently applies a 15-minute scientific fallback. A future
+  /// health-device value can replace it for an individual night.
   final int sleepOnsetAdjustmentMinutes;
 
-  /// Duration calculated from bedtime, wake time and onset adjustment.
+  /// Identifies where the sleep-onset estimate came from.
+  ///
+  /// Initial value: scientificEstimate
+  /// Future values: healthDevice or manual
+  final String sleepLatencySource;
+
+  /// Number of remembered awakenings during the night.
+  final int awakeningCount;
+
+  /// Total estimated minutes spent awake after initially falling asleep.
+  final int awakeDuringNightMinutes;
+
+  /// Bed-to-wake duration minus sleep latency and awake time.
   final int calculatedDurationMinutes;
 
-  /// Optional correction entered by the user.
+  /// Optional future correction entered manually by the user.
   final int? manualDurationMinutes;
   final int sleepQuality;
   final int energy;
@@ -784,6 +880,9 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
     required this.bedtime,
     required this.wakeTime,
     required this.sleepOnsetAdjustmentMinutes,
+    required this.sleepLatencySource,
+    required this.awakeningCount,
+    required this.awakeDuringNightMinutes,
     required this.calculatedDurationMinutes,
     this.manualDurationMinutes,
     required this.sleepQuality,
@@ -802,6 +901,9 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
     map['sleep_onset_adjustment_minutes'] = Variable<int>(
       sleepOnsetAdjustmentMinutes,
     );
+    map['sleep_latency_source'] = Variable<String>(sleepLatencySource);
+    map['awakening_count'] = Variable<int>(awakeningCount);
+    map['awake_during_night_minutes'] = Variable<int>(awakeDuringNightMinutes);
     map['calculated_duration_minutes'] = Variable<int>(
       calculatedDurationMinutes,
     );
@@ -825,6 +927,9 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
       bedtime: Value(bedtime),
       wakeTime: Value(wakeTime),
       sleepOnsetAdjustmentMinutes: Value(sleepOnsetAdjustmentMinutes),
+      sleepLatencySource: Value(sleepLatencySource),
+      awakeningCount: Value(awakeningCount),
+      awakeDuringNightMinutes: Value(awakeDuringNightMinutes),
       calculatedDurationMinutes: Value(calculatedDurationMinutes),
       manualDurationMinutes: manualDurationMinutes == null && nullToAbsent
           ? const Value.absent()
@@ -852,6 +957,13 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
       sleepOnsetAdjustmentMinutes: serializer.fromJson<int>(
         json['sleepOnsetAdjustmentMinutes'],
       ),
+      sleepLatencySource: serializer.fromJson<String>(
+        json['sleepLatencySource'],
+      ),
+      awakeningCount: serializer.fromJson<int>(json['awakeningCount']),
+      awakeDuringNightMinutes: serializer.fromJson<int>(
+        json['awakeDuringNightMinutes'],
+      ),
       calculatedDurationMinutes: serializer.fromJson<int>(
         json['calculatedDurationMinutes'],
       ),
@@ -876,6 +988,11 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
       'sleepOnsetAdjustmentMinutes': serializer.toJson<int>(
         sleepOnsetAdjustmentMinutes,
       ),
+      'sleepLatencySource': serializer.toJson<String>(sleepLatencySource),
+      'awakeningCount': serializer.toJson<int>(awakeningCount),
+      'awakeDuringNightMinutes': serializer.toJson<int>(
+        awakeDuringNightMinutes,
+      ),
       'calculatedDurationMinutes': serializer.toJson<int>(
         calculatedDurationMinutes,
       ),
@@ -894,6 +1011,9 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
     DateTime? bedtime,
     DateTime? wakeTime,
     int? sleepOnsetAdjustmentMinutes,
+    String? sleepLatencySource,
+    int? awakeningCount,
+    int? awakeDuringNightMinutes,
     int? calculatedDurationMinutes,
     Value<int?> manualDurationMinutes = const Value.absent(),
     int? sleepQuality,
@@ -908,6 +1028,10 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
     wakeTime: wakeTime ?? this.wakeTime,
     sleepOnsetAdjustmentMinutes:
         sleepOnsetAdjustmentMinutes ?? this.sleepOnsetAdjustmentMinutes,
+    sleepLatencySource: sleepLatencySource ?? this.sleepLatencySource,
+    awakeningCount: awakeningCount ?? this.awakeningCount,
+    awakeDuringNightMinutes:
+        awakeDuringNightMinutes ?? this.awakeDuringNightMinutes,
     calculatedDurationMinutes:
         calculatedDurationMinutes ?? this.calculatedDurationMinutes,
     manualDurationMinutes: manualDurationMinutes.present
@@ -930,6 +1054,15 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
       sleepOnsetAdjustmentMinutes: data.sleepOnsetAdjustmentMinutes.present
           ? data.sleepOnsetAdjustmentMinutes.value
           : this.sleepOnsetAdjustmentMinutes,
+      sleepLatencySource: data.sleepLatencySource.present
+          ? data.sleepLatencySource.value
+          : this.sleepLatencySource,
+      awakeningCount: data.awakeningCount.present
+          ? data.awakeningCount.value
+          : this.awakeningCount,
+      awakeDuringNightMinutes: data.awakeDuringNightMinutes.present
+          ? data.awakeDuringNightMinutes.value
+          : this.awakeDuringNightMinutes,
       calculatedDurationMinutes: data.calculatedDurationMinutes.present
           ? data.calculatedDurationMinutes.value
           : this.calculatedDurationMinutes,
@@ -954,6 +1087,9 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
           ..write('bedtime: $bedtime, ')
           ..write('wakeTime: $wakeTime, ')
           ..write('sleepOnsetAdjustmentMinutes: $sleepOnsetAdjustmentMinutes, ')
+          ..write('sleepLatencySource: $sleepLatencySource, ')
+          ..write('awakeningCount: $awakeningCount, ')
+          ..write('awakeDuringNightMinutes: $awakeDuringNightMinutes, ')
           ..write('calculatedDurationMinutes: $calculatedDurationMinutes, ')
           ..write('manualDurationMinutes: $manualDurationMinutes, ')
           ..write('sleepQuality: $sleepQuality, ')
@@ -972,6 +1108,9 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
     bedtime,
     wakeTime,
     sleepOnsetAdjustmentMinutes,
+    sleepLatencySource,
+    awakeningCount,
+    awakeDuringNightMinutes,
     calculatedDurationMinutes,
     manualDurationMinutes,
     sleepQuality,
@@ -990,6 +1129,9 @@ class SleepLog extends DataClass implements Insertable<SleepLog> {
           other.wakeTime == this.wakeTime &&
           other.sleepOnsetAdjustmentMinutes ==
               this.sleepOnsetAdjustmentMinutes &&
+          other.sleepLatencySource == this.sleepLatencySource &&
+          other.awakeningCount == this.awakeningCount &&
+          other.awakeDuringNightMinutes == this.awakeDuringNightMinutes &&
           other.calculatedDurationMinutes == this.calculatedDurationMinutes &&
           other.manualDurationMinutes == this.manualDurationMinutes &&
           other.sleepQuality == this.sleepQuality &&
@@ -1005,6 +1147,9 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
   final Value<DateTime> bedtime;
   final Value<DateTime> wakeTime;
   final Value<int> sleepOnsetAdjustmentMinutes;
+  final Value<String> sleepLatencySource;
+  final Value<int> awakeningCount;
+  final Value<int> awakeDuringNightMinutes;
   final Value<int> calculatedDurationMinutes;
   final Value<int?> manualDurationMinutes;
   final Value<int> sleepQuality;
@@ -1018,6 +1163,9 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
     this.bedtime = const Value.absent(),
     this.wakeTime = const Value.absent(),
     this.sleepOnsetAdjustmentMinutes = const Value.absent(),
+    this.sleepLatencySource = const Value.absent(),
+    this.awakeningCount = const Value.absent(),
+    this.awakeDuringNightMinutes = const Value.absent(),
     this.calculatedDurationMinutes = const Value.absent(),
     this.manualDurationMinutes = const Value.absent(),
     this.sleepQuality = const Value.absent(),
@@ -1032,6 +1180,9 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
     required DateTime bedtime,
     required DateTime wakeTime,
     this.sleepOnsetAdjustmentMinutes = const Value.absent(),
+    this.sleepLatencySource = const Value.absent(),
+    this.awakeningCount = const Value.absent(),
+    this.awakeDuringNightMinutes = const Value.absent(),
     required int calculatedDurationMinutes,
     this.manualDurationMinutes = const Value.absent(),
     required int sleepQuality,
@@ -1051,6 +1202,9 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
     Expression<DateTime>? bedtime,
     Expression<DateTime>? wakeTime,
     Expression<int>? sleepOnsetAdjustmentMinutes,
+    Expression<String>? sleepLatencySource,
+    Expression<int>? awakeningCount,
+    Expression<int>? awakeDuringNightMinutes,
     Expression<int>? calculatedDurationMinutes,
     Expression<int>? manualDurationMinutes,
     Expression<int>? sleepQuality,
@@ -1066,6 +1220,11 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
       if (wakeTime != null) 'wake_time': wakeTime,
       if (sleepOnsetAdjustmentMinutes != null)
         'sleep_onset_adjustment_minutes': sleepOnsetAdjustmentMinutes,
+      if (sleepLatencySource != null)
+        'sleep_latency_source': sleepLatencySource,
+      if (awakeningCount != null) 'awakening_count': awakeningCount,
+      if (awakeDuringNightMinutes != null)
+        'awake_during_night_minutes': awakeDuringNightMinutes,
       if (calculatedDurationMinutes != null)
         'calculated_duration_minutes': calculatedDurationMinutes,
       if (manualDurationMinutes != null)
@@ -1084,6 +1243,9 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
     Value<DateTime>? bedtime,
     Value<DateTime>? wakeTime,
     Value<int>? sleepOnsetAdjustmentMinutes,
+    Value<String>? sleepLatencySource,
+    Value<int>? awakeningCount,
+    Value<int>? awakeDuringNightMinutes,
     Value<int>? calculatedDurationMinutes,
     Value<int?>? manualDurationMinutes,
     Value<int>? sleepQuality,
@@ -1099,6 +1261,10 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
       wakeTime: wakeTime ?? this.wakeTime,
       sleepOnsetAdjustmentMinutes:
           sleepOnsetAdjustmentMinutes ?? this.sleepOnsetAdjustmentMinutes,
+      sleepLatencySource: sleepLatencySource ?? this.sleepLatencySource,
+      awakeningCount: awakeningCount ?? this.awakeningCount,
+      awakeDuringNightMinutes:
+          awakeDuringNightMinutes ?? this.awakeDuringNightMinutes,
       calculatedDurationMinutes:
           calculatedDurationMinutes ?? this.calculatedDurationMinutes,
       manualDurationMinutes:
@@ -1129,6 +1295,17 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
     if (sleepOnsetAdjustmentMinutes.present) {
       map['sleep_onset_adjustment_minutes'] = Variable<int>(
         sleepOnsetAdjustmentMinutes.value,
+      );
+    }
+    if (sleepLatencySource.present) {
+      map['sleep_latency_source'] = Variable<String>(sleepLatencySource.value);
+    }
+    if (awakeningCount.present) {
+      map['awakening_count'] = Variable<int>(awakeningCount.value);
+    }
+    if (awakeDuringNightMinutes.present) {
+      map['awake_during_night_minutes'] = Variable<int>(
+        awakeDuringNightMinutes.value,
       );
     }
     if (calculatedDurationMinutes.present) {
@@ -1167,6 +1344,9 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
           ..write('bedtime: $bedtime, ')
           ..write('wakeTime: $wakeTime, ')
           ..write('sleepOnsetAdjustmentMinutes: $sleepOnsetAdjustmentMinutes, ')
+          ..write('sleepLatencySource: $sleepLatencySource, ')
+          ..write('awakeningCount: $awakeningCount, ')
+          ..write('awakeDuringNightMinutes: $awakeDuringNightMinutes, ')
           ..write('calculatedDurationMinutes: $calculatedDurationMinutes, ')
           ..write('manualDurationMinutes: $manualDurationMinutes, ')
           ..write('sleepQuality: $sleepQuality, ')
@@ -1528,6 +1708,9 @@ typedef $$SleepLogsTableCreateCompanionBuilder =
       required DateTime bedtime,
       required DateTime wakeTime,
       Value<int> sleepOnsetAdjustmentMinutes,
+      Value<String> sleepLatencySource,
+      Value<int> awakeningCount,
+      Value<int> awakeDuringNightMinutes,
       required int calculatedDurationMinutes,
       Value<int?> manualDurationMinutes,
       required int sleepQuality,
@@ -1543,6 +1726,9 @@ typedef $$SleepLogsTableUpdateCompanionBuilder =
       Value<DateTime> bedtime,
       Value<DateTime> wakeTime,
       Value<int> sleepOnsetAdjustmentMinutes,
+      Value<String> sleepLatencySource,
+      Value<int> awakeningCount,
+      Value<int> awakeDuringNightMinutes,
       Value<int> calculatedDurationMinutes,
       Value<int?> manualDurationMinutes,
       Value<int> sleepQuality,
@@ -1601,6 +1787,21 @@ class $$SleepLogsTableFilterComposer
 
   ColumnFilters<int> get sleepOnsetAdjustmentMinutes => $composableBuilder(
     column: $table.sleepOnsetAdjustmentMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sleepLatencySource => $composableBuilder(
+    column: $table.sleepLatencySource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get awakeningCount => $composableBuilder(
+    column: $table.awakeningCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get awakeDuringNightMinutes => $composableBuilder(
+    column: $table.awakeDuringNightMinutes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1692,6 +1893,21 @@ class $$SleepLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get sleepLatencySource => $composableBuilder(
+    column: $table.sleepLatencySource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get awakeningCount => $composableBuilder(
+    column: $table.awakeningCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get awakeDuringNightMinutes => $composableBuilder(
+    column: $table.awakeDuringNightMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get calculatedDurationMinutes => $composableBuilder(
     column: $table.calculatedDurationMinutes,
     builder: (column) => ColumnOrderings(column),
@@ -1771,6 +1987,21 @@ class $$SleepLogsTableAnnotationComposer
 
   GeneratedColumn<int> get sleepOnsetAdjustmentMinutes => $composableBuilder(
     column: $table.sleepOnsetAdjustmentMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sleepLatencySource => $composableBuilder(
+    column: $table.sleepLatencySource,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get awakeningCount => $composableBuilder(
+    column: $table.awakeningCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get awakeDuringNightMinutes => $composableBuilder(
+    column: $table.awakeDuringNightMinutes,
     builder: (column) => column,
   );
 
@@ -1858,6 +2089,9 @@ class $$SleepLogsTableTableManager
                 Value<DateTime> bedtime = const Value.absent(),
                 Value<DateTime> wakeTime = const Value.absent(),
                 Value<int> sleepOnsetAdjustmentMinutes = const Value.absent(),
+                Value<String> sleepLatencySource = const Value.absent(),
+                Value<int> awakeningCount = const Value.absent(),
+                Value<int> awakeDuringNightMinutes = const Value.absent(),
                 Value<int> calculatedDurationMinutes = const Value.absent(),
                 Value<int?> manualDurationMinutes = const Value.absent(),
                 Value<int> sleepQuality = const Value.absent(),
@@ -1871,6 +2105,9 @@ class $$SleepLogsTableTableManager
                 bedtime: bedtime,
                 wakeTime: wakeTime,
                 sleepOnsetAdjustmentMinutes: sleepOnsetAdjustmentMinutes,
+                sleepLatencySource: sleepLatencySource,
+                awakeningCount: awakeningCount,
+                awakeDuringNightMinutes: awakeDuringNightMinutes,
                 calculatedDurationMinutes: calculatedDurationMinutes,
                 manualDurationMinutes: manualDurationMinutes,
                 sleepQuality: sleepQuality,
@@ -1886,6 +2123,9 @@ class $$SleepLogsTableTableManager
                 required DateTime bedtime,
                 required DateTime wakeTime,
                 Value<int> sleepOnsetAdjustmentMinutes = const Value.absent(),
+                Value<String> sleepLatencySource = const Value.absent(),
+                Value<int> awakeningCount = const Value.absent(),
+                Value<int> awakeDuringNightMinutes = const Value.absent(),
                 required int calculatedDurationMinutes,
                 Value<int?> manualDurationMinutes = const Value.absent(),
                 required int sleepQuality,
@@ -1899,6 +2139,9 @@ class $$SleepLogsTableTableManager
                 bedtime: bedtime,
                 wakeTime: wakeTime,
                 sleepOnsetAdjustmentMinutes: sleepOnsetAdjustmentMinutes,
+                sleepLatencySource: sleepLatencySource,
+                awakeningCount: awakeningCount,
+                awakeDuringNightMinutes: awakeDuringNightMinutes,
                 calculatedDurationMinutes: calculatedDurationMinutes,
                 manualDurationMinutes: manualDurationMinutes,
                 sleepQuality: sleepQuality,
