@@ -8,6 +8,7 @@ import '../../../../shared/widgets/textured_page.dart';
 import '../../application/sleep_form_controller.dart';
 import '../../application/sleep_form_state.dart';
 import '../../application/sleep_providers.dart';
+import '../widgets/nap_tab.dart';
 
 class SleepPage extends ConsumerStatefulWidget {
   const SleepPage({super.key});
@@ -51,9 +52,7 @@ class _SleepPageState extends ConsumerState<SleepPage> {
                       child: formState.when(
                         loading: () => const Padding(
                           padding: EdgeInsets.only(top: 80),
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          child: Center(child: CircularProgressIndicator()),
                         ),
                         error: (error, _) => _SleepError(
                           message: error.toString(),
@@ -78,7 +77,7 @@ class _SleepPageState extends ConsumerState<SleepPage> {
                     )
                   : const KeyedSubtree(
                       key: ValueKey('nap-tab'),
-                      child: _NapPlaceholder(),
+                      child: NapTab(),
                     ),
             ),
           ],
@@ -95,18 +94,34 @@ class _SleepPageState extends ConsumerState<SleepPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
+          constraints: const BoxConstraints(
+            minWidth: 320,
+            maxWidth: 400,
+          ),
           title: const Text('Delete sleep log?'),
           content: const Text(
             'This will remove the sleep entry for this day.',
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Delete'),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 120,
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(dialogContext, true),
+                    child: const Text('Delete'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 120,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -200,77 +215,17 @@ class _SleepTabButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 19,
-                color: isSelected
-                    ? colors.accentInk
-                    : colors.secondaryInk,
+                color: isSelected ? colors.accentInk : colors.secondaryInk,
               ),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: isSelected
-                          ? colors.accentInk
-                          : colors.secondaryInk,
-                    ),
+                  color: isSelected ? colors.accentInk : colors.secondaryInk,
+                ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NapPlaceholder extends StatelessWidget {
-  const _NapPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.momentumColors;
-    final textTheme = Theme.of(context).textTheme;
-
-    return MomentumCard(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 28),
-        child: Column(
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: colors.accent.withValues(alpha: 0.72),
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.bedtime_outlined,
-                size: 30,
-                color: colors.accentInk,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Nap tracking',
-              style: textTheme.headlineMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Nap logging is coming soon.',
-              style: textTheme.bodyLarge?.copyWith(
-                color: colors.secondaryInk,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'For now, use the Sleep tab to record your overnight sleep.',
-              style: textTheme.bodyMedium?.copyWith(
-                color: colors.secondaryInk,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
         ),
       ),
     );
@@ -291,32 +246,25 @@ class _PageHeading extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Sleep',
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
+              Text('Sleep', style: Theme.of(context).textTheme.displaySmall),
               const SizedBox(height: 6),
               Text(
                 'Record last night and begin today gently.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.secondaryInk,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: colors.secondaryInk),
               ),
             ],
           ),
         ),
         const SizedBox(width: 20),
-        Icon(
-          Icons.dark_mode_outlined,
-          size: 34,
-          color: colors.secondaryInk,
-        ),
+        Icon(Icons.dark_mode_outlined, size: 34, color: colors.secondaryInk),
       ],
     );
   }
 }
 
-class _SleepLogForm extends StatelessWidget {
+class _SleepLogForm extends StatefulWidget {
   const _SleepLogForm({
     required this.form,
     required this.controller,
@@ -328,6 +276,39 @@ class _SleepLogForm extends StatelessWidget {
   final VoidCallback onDelete;
 
   @override
+  State<_SleepLogForm> createState() => _SleepLogFormState();
+}
+
+class _SleepLogFormState extends State<_SleepLogForm> {
+  late final TextEditingController _notesController;
+
+  SleepFormState get form => widget.form;
+  SleepFormController get controller => widget.controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _notesController = TextEditingController(text: form.notes);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SleepLogForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (form.notes != _notesController.text) {
+      _notesController.value = TextEditingValue(
+        text: form.notes,
+        selection: TextSelection.collapsed(offset: form.notes.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.momentumColors;
     final textTheme = Theme.of(context).textTheme;
@@ -337,17 +318,8 @@ class _SleepLogForm extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(
-              child: Text(
-                'Sleep log',
-                style: textTheme.headlineMedium,
-              ),
-            ),
-            Icon(
-              Icons.nightlight_round,
-              size: 30,
-              color: colors.secondaryInk,
-            ),
+            Expanded(child: Text('Sleep log', style: textTheme.headlineMedium)),
+            Icon(Icons.nightlight_round, size: 30, color: colors.secondaryInk),
           ],
         ),
         const SizedBox(height: 24),
@@ -434,32 +406,19 @@ class _SleepLogForm extends StatelessWidget {
           title: 'Energy today',
           icon: Icons.bolt_rounded,
           value: form.energy,
-          labels: const [
-            'drained',
-            'low',
-            'functional',
-            'good',
-            'energised',
-          ],
+          labels: const ['drained', 'low', 'functional', 'good', 'energised'],
           enabled: !form.isBusy,
           onChanged: controller.setEnergy,
         ),
         const SizedBox(height: 20),
         Divider(height: 1, color: colors.divider),
-        _OptionalDetails(
-          form: form,
-          controller: controller,
-        ),
+        _OptionalDetails(form: form, controller: controller),
         Divider(height: 1, color: colors.divider),
         const SizedBox(height: 20),
-        Text(
-          'Notes (optional)',
-          style: textTheme.titleMedium,
-        ),
+        Text('Notes (optional)', style: textTheme.titleMedium),
         const SizedBox(height: 10),
         TextFormField(
-          key: ValueKey('${form.savedLogId}-${form.notes}'),
-          initialValue: form.notes,
+          controller: _notesController,
           enabled: !form.isBusy,
           minLines: 3,
           maxLines: 5,
@@ -473,7 +432,8 @@ class _SleepLogForm extends StatelessWidget {
           const SizedBox(height: 16),
           _FormMessage(
             message: form.message!,
-            isSuccess: form.message == 'Sleep saved.' ||
+            isSuccess:
+                form.message == 'Sleep saved.' ||
                 form.message == 'Sleep log deleted.',
             onDismiss: controller.clearMessage,
           ),
@@ -503,23 +463,21 @@ class _SleepLogForm extends StatelessWidget {
                   form.isSaving
                       ? 'Saving…'
                       : form.hasSavedLog
-                          ? 'Update sleep'
-                          : 'Save sleep',
+                      ? 'Update sleep'
+                      : 'Save sleep',
                 ),
               ),
             ),
             if (form.hasSavedLog)
               TextButton.icon(
-                onPressed: form.isBusy ? null : onDelete,
+                onPressed: form.isBusy ? null : widget.onDelete,
                 icon: form.isDeleting
                     ? const SizedBox.square(
                         dimension: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.delete_outline_rounded),
-                label: Text(
-                  form.isDeleting ? 'Deleting…' : 'Delete',
-                ),
+                label: Text(form.isDeleting ? 'Deleting…' : 'Delete'),
               ),
           ],
         ),
@@ -559,7 +517,7 @@ class _TimeField extends StatelessWidget {
     required this.time,
     required this.icon,
     required this.enabled,
-       required this.onTap,
+    required this.onTap,
   });
 
   final String label;
@@ -577,10 +535,7 @@ class _TimeField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(label, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         InkWell(
           onTap: enabled ? onTap : null,
@@ -622,10 +577,7 @@ class _DurationSummary extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Icon(
-              Icons.schedule_outlined,
-              color: colors.secondaryInk,
-            ),
+            Icon(Icons.schedule_outlined, color: colors.secondaryInk),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -645,9 +597,9 @@ class _DurationSummary extends StatelessWidget {
             ),
             Text(
               isManual ? 'Adjusted' : 'Calculated',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.secondaryInk,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.secondaryInk),
             ),
           ],
         ),
@@ -679,16 +631,13 @@ class _CompactRatingField extends StatelessWidget {
     final safeValue = value < 1
         ? 1
         : value > 5
-            ? 5
-            : value;
+        ? 5
+        : value;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         DecoratedBox(
           decoration: BoxDecoration(
@@ -716,9 +665,7 @@ class _CompactRatingField extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: InkWell(
-                              onTap: enabled
-                                  ? () => onChanged(rating)
-                                  : null,
+                              onTap: enabled ? () => onChanged(rating) : null,
                               borderRadius: BorderRadius.circular(9),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 160),
@@ -737,9 +684,7 @@ class _CompactRatingField extends StatelessWidget {
                                 alignment: Alignment.center,
                                 child: Text(
                                   '$rating',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelLarge
+                                  style: Theme.of(context).textTheme.labelLarge
                                       ?.copyWith(
                                         color: selected
                                             ? colors.accentInk
@@ -761,9 +706,9 @@ class _CompactRatingField extends StatelessWidget {
                     labels[safeValue - 1],
                     textAlign: TextAlign.end,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colors.secondaryInk,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colors.secondaryInk),
                   ),
                 ),
               ],
@@ -776,10 +721,7 @@ class _CompactRatingField extends StatelessWidget {
 }
 
 class _OptionalDetails extends StatelessWidget {
-  const _OptionalDetails({
-    required this.form,
-    required this.controller,
-  });
+  const _OptionalDetails({required this.form, required this.controller});
 
   final SleepFormState form;
   final SleepFormController controller;
@@ -805,9 +747,9 @@ class _OptionalDetails extends StatelessWidget {
         ),
         subtitle: Text(
           'Optional adjustments',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colors.secondaryInk,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colors.secondaryInk),
         ),
         children: [
           _NumberField(
@@ -822,9 +764,9 @@ class _OptionalDetails extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Using the default 15-minute estimate.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.secondaryInk,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: colors.secondaryInk),
               ),
             )
           else
@@ -866,9 +808,9 @@ class _OptionalDetails extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               'Only use this if the calculated duration is inaccurate.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.secondaryInk,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.secondaryInk),
             ),
           ),
           const SizedBox(height: 12),
@@ -907,17 +849,12 @@ class _NumberField extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
           ),
           _StepButton(
             icon: Icons.remove_rounded,
             tooltip: 'Decrease $label',
-            onPressed: enabled && value > 0
-                ? () => onChanged(value - 1)
-                : null,
+            onPressed: enabled && value > 0 ? () => onChanged(value - 1) : null,
           ),
           SizedBox(
             width: 70,
@@ -933,11 +870,7 @@ class _NumberField extends StatelessWidget {
             onPressed: enabled ? () => onChanged(value + 1) : null,
           ),
           const SizedBox(width: 2),
-          Container(
-            width: 1,
-            height: 22,
-            color: colors.divider,
-          ),
+          Container(width: 1, height: 22, color: colors.divider),
         ],
       ),
     );
@@ -1043,9 +976,7 @@ class _FormMessage extends StatelessWidget {
       decoration: BoxDecoration(
         color: foregroundColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: foregroundColor.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: foregroundColor.withValues(alpha: 0.35)),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 8, 4, 8),
@@ -1061,9 +992,9 @@ class _FormMessage extends StatelessWidget {
             Expanded(
               child: Text(
                 message,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: foregroundColor,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: foregroundColor),
               ),
             ),
             IconButton(
@@ -1079,10 +1010,7 @@ class _FormMessage extends StatelessWidget {
 }
 
 class _SleepError extends StatelessWidget {
-  const _SleepError({
-    required this.message,
-    required this.onRetry,
-  });
+  const _SleepError({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;

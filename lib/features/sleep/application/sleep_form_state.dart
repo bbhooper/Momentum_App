@@ -25,11 +25,7 @@ class SleepFormState {
     final wakeTime = DateTime(date.year, date.month, date.day, 7);
     final bedtime = wakeTime.subtract(const Duration(hours: 9));
 
-    return SleepFormState(
-      date: date,
-      bedtime: bedtime,
-      wakeTime: wakeTime,
-    );
+    return SleepFormState(date: date, bedtime: bedtime, wakeTime: wakeTime);
   }
 
   factory SleepFormState.fromLog({
@@ -86,9 +82,7 @@ class SleepFormState {
   int get timeInBedMinutes => wakeTime.difference(bedtime).inMinutes;
 
   int get calculatedDurationMinutes =>
-      timeInBedMinutes -
-      sleepOnsetAdjustmentMinutes -
-      awakeDuringNightMinutes;
+      timeInBedMinutes - sleepOnsetAdjustmentMinutes - awakeDuringNightMinutes;
 
   int get effectiveDurationMinutes =>
       manualDurationMinutes ?? calculatedDurationMinutes;
@@ -116,8 +110,7 @@ class SleepFormState {
       wakeTime: wakeTime ?? this.wakeTime,
       sleepOnsetAdjustmentMinutes:
           sleepOnsetAdjustmentMinutes ?? this.sleepOnsetAdjustmentMinutes,
-      sleepLatencySource:
-          sleepLatencySource ?? this.sleepLatencySource,
+      sleepLatencySource: sleepLatencySource ?? this.sleepLatencySource,
       awakeningCount: awakeningCount ?? this.awakeningCount,
       awakeDuringNightMinutes:
           awakeDuringNightMinutes ?? this.awakeDuringNightMinutes,

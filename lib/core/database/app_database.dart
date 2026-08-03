@@ -3,16 +3,17 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'tables/daily_records.dart';
+import 'tables/nap_logs.dart';
 import 'tables/sleep_logs.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [DailyRecords, SleepLogs])
+@DriftDatabase(tables: [DailyRecords, SleepLogs, NapLogs])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -33,6 +34,22 @@ class AppDatabase extends _$AppDatabase {
           await migrator.addColumn(
             sleepLogs,
             sleepLogs.awakeDuringNightMinutes,
+          );
+        }
+
+        if (from < 4) {
+          await migrator.createTable(napLogs);
+        }
+
+        if (from >= 4 && from < 5) {
+          await migrator.addColumn(napLogs, napLogs.didSleep);
+          await migrator.addColumn(napLogs, napLogs.napType);
+          await migrator.addColumn(napLogs, napLogs.wakeFeeling);
+
+          // Preserve any rating recorded before the question was renamed.
+          await customStatement(
+            'UPDATE nap_logs SET wake_feeling = quality '
+            'WHERE wake_feeling IS NULL AND quality IS NOT NULL',
           );
         }
       },
@@ -88,6 +105,7 @@ class AppDatabase extends _$AppDatabase {
     ])..where(dailyRecords.dateKey.equals(dateKey));
 
     final result = await query.getSingleOrNull();
+
     return result?.readTable(sleepLogs);
   }
 

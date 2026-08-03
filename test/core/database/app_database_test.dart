@@ -18,8 +18,8 @@ void main() {
   });
 
   group('AppDatabase', () {
-    test('uses schema version 3', () {
-      expect(database.schemaVersion, 3);
+    test('uses schema version 5', () {
+      expect(database.schemaVersion, 5);
     });
 
     test('creates a daily record for a new date', () async {

@@ -1359,16 +1359,698 @@ class SleepLogsCompanion extends UpdateCompanion<SleepLog> {
   }
 }
 
+class $NapLogsTable extends NapLogs with TableInfo<$NapLogsTable, NapLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NapLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _dailyRecordIdMeta = const VerificationMeta(
+    'dailyRecordId',
+  );
+  @override
+  late final GeneratedColumn<int> dailyRecordId = GeneratedColumn<int>(
+    'daily_record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES daily_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _startTimeMeta = const VerificationMeta(
+    'startTime',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startTime = GeneratedColumn<DateTime>(
+    'start_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationMinutesMeta = const VerificationMeta(
+    'durationMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> durationMinutes = GeneratedColumn<int>(
+    'duration_minutes',
+    aliasedName,
+    false,
+    check: () => const CustomExpression<bool>('duration_minutes > 0'),
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _didSleepMeta = const VerificationMeta(
+    'didSleep',
+  );
+  @override
+  late final GeneratedColumn<String> didSleep = GeneratedColumn<String>(
+    'did_sleep',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _napTypeMeta = const VerificationMeta(
+    'napType',
+  );
+  @override
+  late final GeneratedColumn<String> napType = GeneratedColumn<String>(
+    'nap_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _wakeFeelingMeta = const VerificationMeta(
+    'wakeFeeling',
+  );
+  @override
+  late final GeneratedColumn<int> wakeFeeling = GeneratedColumn<int>(
+    'wake_feeling',
+    aliasedName,
+    true,
+    check: () => const CustomExpression<bool>(
+      'wake_feeling IS NULL OR wake_feeling BETWEEN 1 AND 5',
+    ),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _qualityMeta = const VerificationMeta(
+    'quality',
+  );
+  @override
+  late final GeneratedColumn<int> quality = GeneratedColumn<int>(
+    'quality',
+    aliasedName,
+    true,
+    check: () => const CustomExpression<bool>(
+      'quality IS NULL OR quality BETWEEN 1 AND 5',
+    ),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: DateTime.now,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: DateTime.now,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    dailyRecordId,
+    startTime,
+    durationMinutes,
+    didSleep,
+    napType,
+    wakeFeeling,
+    quality,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'nap_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NapLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('daily_record_id')) {
+      context.handle(
+        _dailyRecordIdMeta,
+        dailyRecordId.isAcceptableOrUnknown(
+          data['daily_record_id']!,
+          _dailyRecordIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_dailyRecordIdMeta);
+    }
+    if (data.containsKey('start_time')) {
+      context.handle(
+        _startTimeMeta,
+        startTime.isAcceptableOrUnknown(data['start_time']!, _startTimeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startTimeMeta);
+    }
+    if (data.containsKey('duration_minutes')) {
+      context.handle(
+        _durationMinutesMeta,
+        durationMinutes.isAcceptableOrUnknown(
+          data['duration_minutes']!,
+          _durationMinutesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_durationMinutesMeta);
+    }
+    if (data.containsKey('did_sleep')) {
+      context.handle(
+        _didSleepMeta,
+        didSleep.isAcceptableOrUnknown(data['did_sleep']!, _didSleepMeta),
+      );
+    }
+    if (data.containsKey('nap_type')) {
+      context.handle(
+        _napTypeMeta,
+        napType.isAcceptableOrUnknown(data['nap_type']!, _napTypeMeta),
+      );
+    }
+    if (data.containsKey('wake_feeling')) {
+      context.handle(
+        _wakeFeelingMeta,
+        wakeFeeling.isAcceptableOrUnknown(
+          data['wake_feeling']!,
+          _wakeFeelingMeta,
+        ),
+      );
+    }
+    if (data.containsKey('quality')) {
+      context.handle(
+        _qualityMeta,
+        quality.isAcceptableOrUnknown(data['quality']!, _qualityMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NapLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NapLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      dailyRecordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_record_id'],
+      )!,
+      startTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}start_time'],
+      )!,
+      durationMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_minutes'],
+      )!,
+      didSleep: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}did_sleep'],
+      ),
+      napType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nap_type'],
+      ),
+      wakeFeeling: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}wake_feeling'],
+      ),
+      quality: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quality'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $NapLogsTable createAlias(String alias) {
+    return $NapLogsTable(attachedDatabase, alias);
+  }
+}
+
+class NapLog extends DataClass implements Insertable<NapLog> {
+  final int id;
+  final int dailyRecordId;
+  final DateTime startTime;
+  final int durationMinutes;
+
+  /// Whether the user believes they actually slept: yes, no, or unsure.
+  final String? didSleep;
+
+  /// planned, unplanned, or involuntary.
+  final String? napType;
+
+  /// How the user felt after waking, from 1 (terrible) to 5 (energised).
+  final int? wakeFeeling;
+
+  /// Legacy nap-quality value retained for schema compatibility.
+  final int? quality;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const NapLog({
+    required this.id,
+    required this.dailyRecordId,
+    required this.startTime,
+    required this.durationMinutes,
+    this.didSleep,
+    this.napType,
+    this.wakeFeeling,
+    this.quality,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['daily_record_id'] = Variable<int>(dailyRecordId);
+    map['start_time'] = Variable<DateTime>(startTime);
+    map['duration_minutes'] = Variable<int>(durationMinutes);
+    if (!nullToAbsent || didSleep != null) {
+      map['did_sleep'] = Variable<String>(didSleep);
+    }
+    if (!nullToAbsent || napType != null) {
+      map['nap_type'] = Variable<String>(napType);
+    }
+    if (!nullToAbsent || wakeFeeling != null) {
+      map['wake_feeling'] = Variable<int>(wakeFeeling);
+    }
+    if (!nullToAbsent || quality != null) {
+      map['quality'] = Variable<int>(quality);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  NapLogsCompanion toCompanion(bool nullToAbsent) {
+    return NapLogsCompanion(
+      id: Value(id),
+      dailyRecordId: Value(dailyRecordId),
+      startTime: Value(startTime),
+      durationMinutes: Value(durationMinutes),
+      didSleep: didSleep == null && nullToAbsent
+          ? const Value.absent()
+          : Value(didSleep),
+      napType: napType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(napType),
+      wakeFeeling: wakeFeeling == null && nullToAbsent
+          ? const Value.absent()
+          : Value(wakeFeeling),
+      quality: quality == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quality),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory NapLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NapLog(
+      id: serializer.fromJson<int>(json['id']),
+      dailyRecordId: serializer.fromJson<int>(json['dailyRecordId']),
+      startTime: serializer.fromJson<DateTime>(json['startTime']),
+      durationMinutes: serializer.fromJson<int>(json['durationMinutes']),
+      didSleep: serializer.fromJson<String?>(json['didSleep']),
+      napType: serializer.fromJson<String?>(json['napType']),
+      wakeFeeling: serializer.fromJson<int?>(json['wakeFeeling']),
+      quality: serializer.fromJson<int?>(json['quality']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'dailyRecordId': serializer.toJson<int>(dailyRecordId),
+      'startTime': serializer.toJson<DateTime>(startTime),
+      'durationMinutes': serializer.toJson<int>(durationMinutes),
+      'didSleep': serializer.toJson<String?>(didSleep),
+      'napType': serializer.toJson<String?>(napType),
+      'wakeFeeling': serializer.toJson<int?>(wakeFeeling),
+      'quality': serializer.toJson<int?>(quality),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  NapLog copyWith({
+    int? id,
+    int? dailyRecordId,
+    DateTime? startTime,
+    int? durationMinutes,
+    Value<String?> didSleep = const Value.absent(),
+    Value<String?> napType = const Value.absent(),
+    Value<int?> wakeFeeling = const Value.absent(),
+    Value<int?> quality = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => NapLog(
+    id: id ?? this.id,
+    dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+    startTime: startTime ?? this.startTime,
+    durationMinutes: durationMinutes ?? this.durationMinutes,
+    didSleep: didSleep.present ? didSleep.value : this.didSleep,
+    napType: napType.present ? napType.value : this.napType,
+    wakeFeeling: wakeFeeling.present ? wakeFeeling.value : this.wakeFeeling,
+    quality: quality.present ? quality.value : this.quality,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  NapLog copyWithCompanion(NapLogsCompanion data) {
+    return NapLog(
+      id: data.id.present ? data.id.value : this.id,
+      dailyRecordId: data.dailyRecordId.present
+          ? data.dailyRecordId.value
+          : this.dailyRecordId,
+      startTime: data.startTime.present ? data.startTime.value : this.startTime,
+      durationMinutes: data.durationMinutes.present
+          ? data.durationMinutes.value
+          : this.durationMinutes,
+      didSleep: data.didSleep.present ? data.didSleep.value : this.didSleep,
+      napType: data.napType.present ? data.napType.value : this.napType,
+      wakeFeeling: data.wakeFeeling.present
+          ? data.wakeFeeling.value
+          : this.wakeFeeling,
+      quality: data.quality.present ? data.quality.value : this.quality,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NapLog(')
+          ..write('id: $id, ')
+          ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('startTime: $startTime, ')
+          ..write('durationMinutes: $durationMinutes, ')
+          ..write('didSleep: $didSleep, ')
+          ..write('napType: $napType, ')
+          ..write('wakeFeeling: $wakeFeeling, ')
+          ..write('quality: $quality, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    dailyRecordId,
+    startTime,
+    durationMinutes,
+    didSleep,
+    napType,
+    wakeFeeling,
+    quality,
+    notes,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NapLog &&
+          other.id == this.id &&
+          other.dailyRecordId == this.dailyRecordId &&
+          other.startTime == this.startTime &&
+          other.durationMinutes == this.durationMinutes &&
+          other.didSleep == this.didSleep &&
+          other.napType == this.napType &&
+          other.wakeFeeling == this.wakeFeeling &&
+          other.quality == this.quality &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class NapLogsCompanion extends UpdateCompanion<NapLog> {
+  final Value<int> id;
+  final Value<int> dailyRecordId;
+  final Value<DateTime> startTime;
+  final Value<int> durationMinutes;
+  final Value<String?> didSleep;
+  final Value<String?> napType;
+  final Value<int?> wakeFeeling;
+  final Value<int?> quality;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const NapLogsCompanion({
+    this.id = const Value.absent(),
+    this.dailyRecordId = const Value.absent(),
+    this.startTime = const Value.absent(),
+    this.durationMinutes = const Value.absent(),
+    this.didSleep = const Value.absent(),
+    this.napType = const Value.absent(),
+    this.wakeFeeling = const Value.absent(),
+    this.quality = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  NapLogsCompanion.insert({
+    this.id = const Value.absent(),
+    required int dailyRecordId,
+    required DateTime startTime,
+    required int durationMinutes,
+    this.didSleep = const Value.absent(),
+    this.napType = const Value.absent(),
+    this.wakeFeeling = const Value.absent(),
+    this.quality = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : dailyRecordId = Value(dailyRecordId),
+       startTime = Value(startTime),
+       durationMinutes = Value(durationMinutes);
+  static Insertable<NapLog> custom({
+    Expression<int>? id,
+    Expression<int>? dailyRecordId,
+    Expression<DateTime>? startTime,
+    Expression<int>? durationMinutes,
+    Expression<String>? didSleep,
+    Expression<String>? napType,
+    Expression<int>? wakeFeeling,
+    Expression<int>? quality,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (dailyRecordId != null) 'daily_record_id': dailyRecordId,
+      if (startTime != null) 'start_time': startTime,
+      if (durationMinutes != null) 'duration_minutes': durationMinutes,
+      if (didSleep != null) 'did_sleep': didSleep,
+      if (napType != null) 'nap_type': napType,
+      if (wakeFeeling != null) 'wake_feeling': wakeFeeling,
+      if (quality != null) 'quality': quality,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  NapLogsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? dailyRecordId,
+    Value<DateTime>? startTime,
+    Value<int>? durationMinutes,
+    Value<String?>? didSleep,
+    Value<String?>? napType,
+    Value<int?>? wakeFeeling,
+    Value<int?>? quality,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return NapLogsCompanion(
+      id: id ?? this.id,
+      dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+      startTime: startTime ?? this.startTime,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      didSleep: didSleep ?? this.didSleep,
+      napType: napType ?? this.napType,
+      wakeFeeling: wakeFeeling ?? this.wakeFeeling,
+      quality: quality ?? this.quality,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (dailyRecordId.present) {
+      map['daily_record_id'] = Variable<int>(dailyRecordId.value);
+    }
+    if (startTime.present) {
+      map['start_time'] = Variable<DateTime>(startTime.value);
+    }
+    if (durationMinutes.present) {
+      map['duration_minutes'] = Variable<int>(durationMinutes.value);
+    }
+    if (didSleep.present) {
+      map['did_sleep'] = Variable<String>(didSleep.value);
+    }
+    if (napType.present) {
+      map['nap_type'] = Variable<String>(napType.value);
+    }
+    if (wakeFeeling.present) {
+      map['wake_feeling'] = Variable<int>(wakeFeeling.value);
+    }
+    if (quality.present) {
+      map['quality'] = Variable<int>(quality.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NapLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('startTime: $startTime, ')
+          ..write('durationMinutes: $durationMinutes, ')
+          ..write('didSleep: $didSleep, ')
+          ..write('napType: $napType, ')
+          ..write('wakeFeeling: $wakeFeeling, ')
+          ..write('quality: $quality, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $DailyRecordsTable dailyRecords = $DailyRecordsTable(this);
   late final $SleepLogsTable sleepLogs = $SleepLogsTable(this);
+  late final $NapLogsTable napLogs = $NapLogsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [dailyRecords, sleepLogs];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    dailyRecords,
+    sleepLogs,
+    napLogs,
+  ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
     WritePropagation(
@@ -1377,6 +2059,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('sleep_logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'daily_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('nap_logs', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -1417,6 +2106,25 @@ final class $$DailyRecordsTableReferences
     ).filter((f) => f.dailyRecordId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_sleepLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$NapLogsTable, List<NapLog>> _napLogsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.napLogs,
+    aliasName: 'daily_records__id__nap_logs__daily_record_id',
+  );
+
+  $$NapLogsTableProcessedTableManager get napLogsRefs {
+    final manager = $$NapLogsTableTableManager(
+      $_db,
+      $_db.napLogs,
+    ).filter((f) => f.dailyRecordId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_napLogsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1478,6 +2186,31 @@ class $$DailyRecordsTableFilterComposer
           }) => $$SleepLogsTableFilterComposer(
             $db: $db,
             $table: $db.sleepLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> napLogsRefs(
+    Expression<bool> Function($$NapLogsTableFilterComposer f) f,
+  ) {
+    final $$NapLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.napLogs,
+      getReferencedColumn: (t) => t.dailyRecordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NapLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.napLogs,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1583,6 +2316,31 @@ class $$DailyRecordsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> napLogsRefs<T extends Object>(
+    Expression<T> Function($$NapLogsTableAnnotationComposer a) f,
+  ) {
+    final $$NapLogsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.napLogs,
+      getReferencedColumn: (t) => t.dailyRecordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NapLogsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.napLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DailyRecordsTableTableManager
@@ -1598,7 +2356,7 @@ class $$DailyRecordsTableTableManager
           $$DailyRecordsTableUpdateCompanionBuilder,
           (DailyRecord, $$DailyRecordsTableReferences),
           DailyRecord,
-          PrefetchHooks Function({bool sleepLogsRefs})
+          PrefetchHooks Function({bool sleepLogsRefs, bool napLogsRefs})
         > {
   $$DailyRecordsTableTableManager(_$AppDatabase db, $DailyRecordsTable table)
     : super(
@@ -1651,38 +2409,63 @@ class $$DailyRecordsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({sleepLogsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (sleepLogsRefs) db.sleepLogs],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (sleepLogsRefs)
-                    await $_getPrefetchedData<
-                      DailyRecord,
-                      $DailyRecordsTable,
-                      SleepLog
-                    >(
-                      currentTable: table,
-                      referencedTable: $$DailyRecordsTableReferences
-                          ._sleepLogsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$DailyRecordsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).sleepLogsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.dailyRecordId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({sleepLogsRefs = false, napLogsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (sleepLogsRefs) db.sleepLogs,
+                    if (napLogsRefs) db.napLogs,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (sleepLogsRefs)
+                        await $_getPrefetchedData<
+                          DailyRecord,
+                          $DailyRecordsTable,
+                          SleepLog
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DailyRecordsTableReferences
+                              ._sleepLogsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DailyRecordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sleepLogsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.dailyRecordId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (napLogsRefs)
+                        await $_getPrefetchedData<
+                          DailyRecord,
+                          $DailyRecordsTable,
+                          NapLog
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DailyRecordsTableReferences
+                              ._napLogsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DailyRecordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).napLogsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.dailyRecordId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -1699,7 +2482,7 @@ typedef $$DailyRecordsTableProcessedTableManager =
       $$DailyRecordsTableUpdateCompanionBuilder,
       (DailyRecord, $$DailyRecordsTableReferences),
       DailyRecord,
-      PrefetchHooks Function({bool sleepLogsRefs})
+      PrefetchHooks Function({bool sleepLogsRefs, bool napLogsRefs})
     >;
 typedef $$SleepLogsTableCreateCompanionBuilder =
     SleepLogsCompanion Function({
@@ -2217,6 +3000,436 @@ typedef $$SleepLogsTableProcessedTableManager =
       SleepLog,
       PrefetchHooks Function({bool dailyRecordId})
     >;
+typedef $$NapLogsTableCreateCompanionBuilder =
+    NapLogsCompanion Function({
+      Value<int> id,
+      required int dailyRecordId,
+      required DateTime startTime,
+      required int durationMinutes,
+      Value<String?> didSleep,
+      Value<String?> napType,
+      Value<int?> wakeFeeling,
+      Value<int?> quality,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$NapLogsTableUpdateCompanionBuilder =
+    NapLogsCompanion Function({
+      Value<int> id,
+      Value<int> dailyRecordId,
+      Value<DateTime> startTime,
+      Value<int> durationMinutes,
+      Value<String?> didSleep,
+      Value<String?> napType,
+      Value<int?> wakeFeeling,
+      Value<int?> quality,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$NapLogsTableReferences
+    extends BaseReferences<_$AppDatabase, $NapLogsTable, NapLog> {
+  $$NapLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DailyRecordsTable _dailyRecordIdTable(_$AppDatabase db) => db
+      .dailyRecords
+      .createAlias('nap_logs__daily_record_id__daily_records__id');
+
+  $$DailyRecordsTableProcessedTableManager get dailyRecordId {
+    final $_column = $_itemColumn<int>('daily_record_id')!;
+
+    final manager = $$DailyRecordsTableTableManager(
+      $_db,
+      $_db.dailyRecords,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_dailyRecordIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$NapLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $NapLogsTable> {
+  $$NapLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startTime => $composableBuilder(
+    column: $table.startTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get didSleep => $composableBuilder(
+    column: $table.didSleep,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get napType => $composableBuilder(
+    column: $table.napType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get wakeFeeling => $composableBuilder(
+    column: $table.wakeFeeling,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get quality => $composableBuilder(
+    column: $table.quality,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DailyRecordsTableFilterComposer get dailyRecordId {
+    final $$DailyRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NapLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $NapLogsTable> {
+  $$NapLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startTime => $composableBuilder(
+    column: $table.startTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get didSleep => $composableBuilder(
+    column: $table.didSleep,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get napType => $composableBuilder(
+    column: $table.napType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get wakeFeeling => $composableBuilder(
+    column: $table.wakeFeeling,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get quality => $composableBuilder(
+    column: $table.quality,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DailyRecordsTableOrderingComposer get dailyRecordId {
+    final $$DailyRecordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NapLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NapLogsTable> {
+  $$NapLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startTime =>
+      $composableBuilder(column: $table.startTime, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMinutes => $composableBuilder(
+    column: $table.durationMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get didSleep =>
+      $composableBuilder(column: $table.didSleep, builder: (column) => column);
+
+  GeneratedColumn<String> get napType =>
+      $composableBuilder(column: $table.napType, builder: (column) => column);
+
+  GeneratedColumn<int> get wakeFeeling => $composableBuilder(
+    column: $table.wakeFeeling,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get quality =>
+      $composableBuilder(column: $table.quality, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$DailyRecordsTableAnnotationComposer get dailyRecordId {
+    final $$DailyRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NapLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $NapLogsTable,
+          NapLog,
+          $$NapLogsTableFilterComposer,
+          $$NapLogsTableOrderingComposer,
+          $$NapLogsTableAnnotationComposer,
+          $$NapLogsTableCreateCompanionBuilder,
+          $$NapLogsTableUpdateCompanionBuilder,
+          (NapLog, $$NapLogsTableReferences),
+          NapLog,
+          PrefetchHooks Function({bool dailyRecordId})
+        > {
+  $$NapLogsTableTableManager(_$AppDatabase db, $NapLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NapLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NapLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NapLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> dailyRecordId = const Value.absent(),
+                Value<DateTime> startTime = const Value.absent(),
+                Value<int> durationMinutes = const Value.absent(),
+                Value<String?> didSleep = const Value.absent(),
+                Value<String?> napType = const Value.absent(),
+                Value<int?> wakeFeeling = const Value.absent(),
+                Value<int?> quality = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => NapLogsCompanion(
+                id: id,
+                dailyRecordId: dailyRecordId,
+                startTime: startTime,
+                durationMinutes: durationMinutes,
+                didSleep: didSleep,
+                napType: napType,
+                wakeFeeling: wakeFeeling,
+                quality: quality,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int dailyRecordId,
+                required DateTime startTime,
+                required int durationMinutes,
+                Value<String?> didSleep = const Value.absent(),
+                Value<String?> napType = const Value.absent(),
+                Value<int?> wakeFeeling = const Value.absent(),
+                Value<int?> quality = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => NapLogsCompanion.insert(
+                id: id,
+                dailyRecordId: dailyRecordId,
+                startTime: startTime,
+                durationMinutes: durationMinutes,
+                didSleep: didSleep,
+                napType: napType,
+                wakeFeeling: wakeFeeling,
+                quality: quality,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$NapLogsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({dailyRecordId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (dailyRecordId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.dailyRecordId,
+                                referencedTable: $$NapLogsTableReferences
+                                    ._dailyRecordIdTable(db),
+                                referencedColumn: $$NapLogsTableReferences
+                                    ._dailyRecordIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$NapLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $NapLogsTable,
+      NapLog,
+      $$NapLogsTableFilterComposer,
+      $$NapLogsTableOrderingComposer,
+      $$NapLogsTableAnnotationComposer,
+      $$NapLogsTableCreateCompanionBuilder,
+      $$NapLogsTableUpdateCompanionBuilder,
+      (NapLog, $$NapLogsTableReferences),
+      NapLog,
+      PrefetchHooks Function({bool dailyRecordId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2225,4 +3438,6 @@ class $AppDatabaseManager {
       $$DailyRecordsTableTableManager(_db, _db.dailyRecords);
   $$SleepLogsTableTableManager get sleepLogs =>
       $$SleepLogsTableTableManager(_db, _db.sleepLogs);
+  $$NapLogsTableTableManager get napLogs =>
+      $$NapLogsTableTableManager(_db, _db.napLogs);
 }

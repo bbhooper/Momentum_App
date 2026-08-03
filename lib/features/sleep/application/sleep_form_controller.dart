@@ -21,28 +21,15 @@ class SleepFormController extends AsyncNotifier<SleepFormState> {
       return SleepFormState.empty(currentDay);
     }
 
-    return SleepFormState.fromLog(
-      date: currentDay,
-      log: existingLog,
-    );
+    return SleepFormState.fromLog(date: currentDay, log: existingLog);
   }
 
   void setBedtime(DateTime value) {
-    _update(
-      (form) => form.copyWith(
-        bedtime: value,
-        message: null,
-      ),
-    );
+    _update((form) => form.copyWith(bedtime: value, message: null));
   }
 
   void setWakeTime(DateTime value) {
-    _update(
-      (form) => form.copyWith(
-        wakeTime: value,
-        message: null,
-      ),
-    );
+    _update((form) => form.copyWith(wakeTime: value, message: null));
   }
 
   /// Records a user-entered sleep-latency value.
@@ -68,57 +55,31 @@ class SleepFormController extends AsyncNotifier<SleepFormState> {
   }
 
   void setAwakeningCount(int value) {
-    _update(
-      (form) => form.copyWith(
-        awakeningCount: value,
-        message: null,
-      ),
-    );
+    _update((form) => form.copyWith(awakeningCount: value, message: null));
   }
 
   void setAwakeDuringNightMinutes(int value) {
     _update(
-      (form) => form.copyWith(
-        awakeDuringNightMinutes: value,
-        message: null,
-      ),
+      (form) => form.copyWith(awakeDuringNightMinutes: value, message: null),
     );
   }
 
   void setManualDurationMinutes(int? value) {
     _update(
-      (form) => form.copyWith(
-        manualDurationMinutes: value,
-        message: null,
-      ),
+      (form) => form.copyWith(manualDurationMinutes: value, message: null),
     );
   }
 
   void setSleepQuality(int value) {
-    _update(
-      (form) => form.copyWith(
-        sleepQuality: value,
-        message: null,
-      ),
-    );
+    _update((form) => form.copyWith(sleepQuality: value, message: null));
   }
 
   void setEnergy(int value) {
-    _update(
-      (form) => form.copyWith(
-        energy: value,
-        message: null,
-      ),
-    );
+    _update((form) => form.copyWith(energy: value, message: null));
   }
 
   void setNotes(String value) {
-    _update(
-      (form) => form.copyWith(
-        notes: value,
-        message: null,
-      ),
-    );
+    _update((form) => form.copyWith(notes: value, message: null));
   }
 
   Future<bool> save() async {
@@ -128,20 +89,14 @@ class SleepFormController extends AsyncNotifier<SleepFormState> {
       return false;
     }
 
-    state = AsyncData(
-      form.copyWith(
-        isSaving: true,
-        message: null,
-      ),
-    );
+    state = AsyncData(form.copyWith(isSaving: true, message: null));
 
     try {
       final savedLog = await _repository.saveSleepLog(
         dateKey: form.date.dateKey,
         bedtime: form.bedtime,
         wakeTime: form.wakeTime,
-        sleepOnsetAdjustmentMinutes:
-            form.sleepOnsetAdjustmentMinutes,
+        sleepOnsetAdjustmentMinutes: form.sleepOnsetAdjustmentMinutes,
         sleepLatencySource: form.sleepLatencySource,
         awakeningCount: form.awakeningCount,
         awakeDuringNightMinutes: form.awakeDuringNightMinutes,
@@ -160,12 +115,7 @@ class SleepFormController extends AsyncNotifier<SleepFormState> {
 
       return true;
     } on SleepValidationException catch (error) {
-      state = AsyncData(
-        form.copyWith(
-          isSaving: false,
-          message: error.message,
-        ),
-      );
+      state = AsyncData(form.copyWith(isSaving: false, message: error.message));
 
       return false;
     } catch (error, stackTrace) {
@@ -181,17 +131,10 @@ class SleepFormController extends AsyncNotifier<SleepFormState> {
       return false;
     }
 
-    state = AsyncData(
-      form.copyWith(
-        isDeleting: true,
-        message: null,
-      ),
-    );
+    state = AsyncData(form.copyWith(isDeleting: true, message: null));
 
     try {
-      final wasDeleted = await _repository.deleteSleepLog(
-        form.date.dateKey,
-      );
+      final wasDeleted = await _repository.deleteSleepLog(form.date.dateKey);
 
       if (!wasDeleted) {
         state = AsyncData(
@@ -205,9 +148,7 @@ class SleepFormController extends AsyncNotifier<SleepFormState> {
       }
 
       state = AsyncData(
-        SleepFormState.empty(
-          form.date,
-        ).copyWith(message: 'Sleep log deleted.'),
+        SleepFormState.empty(form.date).copyWith(message: 'Sleep log deleted.'),
       );
 
       return true;
@@ -223,14 +164,10 @@ class SleepFormController extends AsyncNotifier<SleepFormState> {
   }
 
   void clearMessage() {
-    _update(
-      (form) => form.copyWith(message: null),
-    );
+    _update((form) => form.copyWith(message: null));
   }
 
-  void _update(
-    SleepFormState Function(SleepFormState form) update,
-  ) {
+  void _update(SleepFormState Function(SleepFormState form) update) {
     final form = state.value;
 
     if (form == null || form.isBusy) {
