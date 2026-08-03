@@ -644,10 +644,7 @@ class _NapList extends StatelessWidget {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        constraints: const BoxConstraints(
-          minWidth: 320,
-          maxWidth: 400,
-        ),
+        constraints: const BoxConstraints(minWidth: 320, maxWidth: 400),
         title: const Text('Delete nap?'),
         content: Text(
           'Remove the ${_formatDuration(nap.durationMinutes)} nap?',

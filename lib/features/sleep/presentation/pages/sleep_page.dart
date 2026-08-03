@@ -94,14 +94,9 @@ class _SleepPageState extends ConsumerState<SleepPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          constraints: const BoxConstraints(
-            minWidth: 320,
-            maxWidth: 400,
-          ),
+          constraints: const BoxConstraints(minWidth: 320, maxWidth: 400),
           title: const Text('Delete sleep log?'),
-          content: const Text(
-            'This will remove the sleep entry for this day.',
-          ),
+          content: const Text('This will remove the sleep entry for this day.'),
           actions: [
             Row(
               mainAxisSize: MainAxisSize.min,

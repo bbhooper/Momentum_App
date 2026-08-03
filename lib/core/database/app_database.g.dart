@@ -2036,12 +2036,1345 @@ class NapLogsCompanion extends UpdateCompanion<NapLog> {
   }
 }
 
+class $CareLogsTable extends CareLogs with TableInfo<$CareLogsTable, CareLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CareLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _dailyRecordIdMeta = const VerificationMeta(
+    'dailyRecordId',
+  );
+  @override
+  late final GeneratedColumn<int> dailyRecordId = GeneratedColumn<int>(
+    'daily_record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'UNIQUE REFERENCES daily_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _moodScoreMeta = const VerificationMeta(
+    'moodScore',
+  );
+  @override
+  late final GeneratedColumn<int> moodScore = GeneratedColumn<int>(
+    'mood_score',
+    aliasedName,
+    true,
+    check: () => const CustomExpression<bool>(
+      'mood_score IS NULL OR mood_score BETWEEN 1 AND 5',
+    ),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _moodNotesMeta = const VerificationMeta(
+    'moodNotes',
+  );
+  @override
+  late final GeneratedColumn<String> moodNotes = GeneratedColumn<String>(
+    'mood_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _energyLevelMeta = const VerificationMeta(
+    'energyLevel',
+  );
+  @override
+  late final GeneratedColumn<String> energyLevel = GeneratedColumn<String>(
+    'energy_level',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: DateTime.now,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: DateTime.now,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    dailyRecordId,
+    moodScore,
+    moodNotes,
+    energyLevel,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'care_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CareLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('daily_record_id')) {
+      context.handle(
+        _dailyRecordIdMeta,
+        dailyRecordId.isAcceptableOrUnknown(
+          data['daily_record_id']!,
+          _dailyRecordIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_dailyRecordIdMeta);
+    }
+    if (data.containsKey('mood_score')) {
+      context.handle(
+        _moodScoreMeta,
+        moodScore.isAcceptableOrUnknown(data['mood_score']!, _moodScoreMeta),
+      );
+    }
+    if (data.containsKey('mood_notes')) {
+      context.handle(
+        _moodNotesMeta,
+        moodNotes.isAcceptableOrUnknown(data['mood_notes']!, _moodNotesMeta),
+      );
+    }
+    if (data.containsKey('energy_level')) {
+      context.handle(
+        _energyLevelMeta,
+        energyLevel.isAcceptableOrUnknown(
+          data['energy_level']!,
+          _energyLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CareLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CareLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      dailyRecordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_record_id'],
+      )!,
+      moodScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}mood_score'],
+      ),
+      moodNotes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mood_notes'],
+      ),
+      energyLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}energy_level'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CareLogsTable createAlias(String alias) {
+    return $CareLogsTable(attachedDatabase, alias);
+  }
+}
+
+class CareLog extends DataClass implements Insertable<CareLog> {
+  final int id;
+  final int dailyRecordId;
+  final int? moodScore;
+  final String? moodNotes;
+
+  /// Retained temporarily for migration compatibility. New energy entries live
+  /// in EnergyLogs and this value is no longer written by the Care feature.
+  final String? energyLevel;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const CareLog({
+    required this.id,
+    required this.dailyRecordId,
+    this.moodScore,
+    this.moodNotes,
+    this.energyLevel,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['daily_record_id'] = Variable<int>(dailyRecordId);
+    if (!nullToAbsent || moodScore != null) {
+      map['mood_score'] = Variable<int>(moodScore);
+    }
+    if (!nullToAbsent || moodNotes != null) {
+      map['mood_notes'] = Variable<String>(moodNotes);
+    }
+    if (!nullToAbsent || energyLevel != null) {
+      map['energy_level'] = Variable<String>(energyLevel);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  CareLogsCompanion toCompanion(bool nullToAbsent) {
+    return CareLogsCompanion(
+      id: Value(id),
+      dailyRecordId: Value(dailyRecordId),
+      moodScore: moodScore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(moodScore),
+      moodNotes: moodNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(moodNotes),
+      energyLevel: energyLevel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(energyLevel),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory CareLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CareLog(
+      id: serializer.fromJson<int>(json['id']),
+      dailyRecordId: serializer.fromJson<int>(json['dailyRecordId']),
+      moodScore: serializer.fromJson<int?>(json['moodScore']),
+      moodNotes: serializer.fromJson<String?>(json['moodNotes']),
+      energyLevel: serializer.fromJson<String?>(json['energyLevel']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'dailyRecordId': serializer.toJson<int>(dailyRecordId),
+      'moodScore': serializer.toJson<int?>(moodScore),
+      'moodNotes': serializer.toJson<String?>(moodNotes),
+      'energyLevel': serializer.toJson<String?>(energyLevel),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  CareLog copyWith({
+    int? id,
+    int? dailyRecordId,
+    Value<int?> moodScore = const Value.absent(),
+    Value<String?> moodNotes = const Value.absent(),
+    Value<String?> energyLevel = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => CareLog(
+    id: id ?? this.id,
+    dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+    moodScore: moodScore.present ? moodScore.value : this.moodScore,
+    moodNotes: moodNotes.present ? moodNotes.value : this.moodNotes,
+    energyLevel: energyLevel.present ? energyLevel.value : this.energyLevel,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  CareLog copyWithCompanion(CareLogsCompanion data) {
+    return CareLog(
+      id: data.id.present ? data.id.value : this.id,
+      dailyRecordId: data.dailyRecordId.present
+          ? data.dailyRecordId.value
+          : this.dailyRecordId,
+      moodScore: data.moodScore.present ? data.moodScore.value : this.moodScore,
+      moodNotes: data.moodNotes.present ? data.moodNotes.value : this.moodNotes,
+      energyLevel: data.energyLevel.present
+          ? data.energyLevel.value
+          : this.energyLevel,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CareLog(')
+          ..write('id: $id, ')
+          ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('moodScore: $moodScore, ')
+          ..write('moodNotes: $moodNotes, ')
+          ..write('energyLevel: $energyLevel, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    dailyRecordId,
+    moodScore,
+    moodNotes,
+    energyLevel,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CareLog &&
+          other.id == this.id &&
+          other.dailyRecordId == this.dailyRecordId &&
+          other.moodScore == this.moodScore &&
+          other.moodNotes == this.moodNotes &&
+          other.energyLevel == this.energyLevel &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CareLogsCompanion extends UpdateCompanion<CareLog> {
+  final Value<int> id;
+  final Value<int> dailyRecordId;
+  final Value<int?> moodScore;
+  final Value<String?> moodNotes;
+  final Value<String?> energyLevel;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const CareLogsCompanion({
+    this.id = const Value.absent(),
+    this.dailyRecordId = const Value.absent(),
+    this.moodScore = const Value.absent(),
+    this.moodNotes = const Value.absent(),
+    this.energyLevel = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  CareLogsCompanion.insert({
+    this.id = const Value.absent(),
+    required int dailyRecordId,
+    this.moodScore = const Value.absent(),
+    this.moodNotes = const Value.absent(),
+    this.energyLevel = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : dailyRecordId = Value(dailyRecordId);
+  static Insertable<CareLog> custom({
+    Expression<int>? id,
+    Expression<int>? dailyRecordId,
+    Expression<int>? moodScore,
+    Expression<String>? moodNotes,
+    Expression<String>? energyLevel,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (dailyRecordId != null) 'daily_record_id': dailyRecordId,
+      if (moodScore != null) 'mood_score': moodScore,
+      if (moodNotes != null) 'mood_notes': moodNotes,
+      if (energyLevel != null) 'energy_level': energyLevel,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  CareLogsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? dailyRecordId,
+    Value<int?>? moodScore,
+    Value<String?>? moodNotes,
+    Value<String?>? energyLevel,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return CareLogsCompanion(
+      id: id ?? this.id,
+      dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+      moodScore: moodScore ?? this.moodScore,
+      moodNotes: moodNotes ?? this.moodNotes,
+      energyLevel: energyLevel ?? this.energyLevel,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (dailyRecordId.present) {
+      map['daily_record_id'] = Variable<int>(dailyRecordId.value);
+    }
+    if (moodScore.present) {
+      map['mood_score'] = Variable<int>(moodScore.value);
+    }
+    if (moodNotes.present) {
+      map['mood_notes'] = Variable<String>(moodNotes.value);
+    }
+    if (energyLevel.present) {
+      map['energy_level'] = Variable<String>(energyLevel.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CareLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('moodScore: $moodScore, ')
+          ..write('moodNotes: $moodNotes, ')
+          ..write('energyLevel: $energyLevel, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EnergyLogsTable extends EnergyLogs
+    with TableInfo<$EnergyLogsTable, EnergyLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EnergyLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _dailyRecordIdMeta = const VerificationMeta(
+    'dailyRecordId',
+  );
+  @override
+  late final GeneratedColumn<int> dailyRecordId = GeneratedColumn<int>(
+    'daily_record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES daily_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _energyLevelMeta = const VerificationMeta(
+    'energyLevel',
+  );
+  @override
+  late final GeneratedColumn<String> energyLevel = GeneratedColumn<String>(
+    'energy_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: DateTime.now,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    dailyRecordId,
+    energyLevel,
+    recordedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'energy_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EnergyLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('daily_record_id')) {
+      context.handle(
+        _dailyRecordIdMeta,
+        dailyRecordId.isAcceptableOrUnknown(
+          data['daily_record_id']!,
+          _dailyRecordIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_dailyRecordIdMeta);
+    }
+    if (data.containsKey('energy_level')) {
+      context.handle(
+        _energyLevelMeta,
+        energyLevel.isAcceptableOrUnknown(
+          data['energy_level']!,
+          _energyLevelMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_energyLevelMeta);
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EnergyLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EnergyLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      dailyRecordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_record_id'],
+      )!,
+      energyLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}energy_level'],
+      )!,
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $EnergyLogsTable createAlias(String alias) {
+    return $EnergyLogsTable(attachedDatabase, alias);
+  }
+}
+
+class EnergyLog extends DataClass implements Insertable<EnergyLog> {
+  final int id;
+  final int dailyRecordId;
+
+  /// drained, flat, okay, good, or energised.
+  final String energyLevel;
+  final DateTime recordedAt;
+  final DateTime createdAt;
+  const EnergyLog({
+    required this.id,
+    required this.dailyRecordId,
+    required this.energyLevel,
+    required this.recordedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['daily_record_id'] = Variable<int>(dailyRecordId);
+    map['energy_level'] = Variable<String>(energyLevel);
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  EnergyLogsCompanion toCompanion(bool nullToAbsent) {
+    return EnergyLogsCompanion(
+      id: Value(id),
+      dailyRecordId: Value(dailyRecordId),
+      energyLevel: Value(energyLevel),
+      recordedAt: Value(recordedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory EnergyLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EnergyLog(
+      id: serializer.fromJson<int>(json['id']),
+      dailyRecordId: serializer.fromJson<int>(json['dailyRecordId']),
+      energyLevel: serializer.fromJson<String>(json['energyLevel']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'dailyRecordId': serializer.toJson<int>(dailyRecordId),
+      'energyLevel': serializer.toJson<String>(energyLevel),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  EnergyLog copyWith({
+    int? id,
+    int? dailyRecordId,
+    String? energyLevel,
+    DateTime? recordedAt,
+    DateTime? createdAt,
+  }) => EnergyLog(
+    id: id ?? this.id,
+    dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+    energyLevel: energyLevel ?? this.energyLevel,
+    recordedAt: recordedAt ?? this.recordedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  EnergyLog copyWithCompanion(EnergyLogsCompanion data) {
+    return EnergyLog(
+      id: data.id.present ? data.id.value : this.id,
+      dailyRecordId: data.dailyRecordId.present
+          ? data.dailyRecordId.value
+          : this.dailyRecordId,
+      energyLevel: data.energyLevel.present
+          ? data.energyLevel.value
+          : this.energyLevel,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EnergyLog(')
+          ..write('id: $id, ')
+          ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('energyLevel: $energyLevel, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, dailyRecordId, energyLevel, recordedAt, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EnergyLog &&
+          other.id == this.id &&
+          other.dailyRecordId == this.dailyRecordId &&
+          other.energyLevel == this.energyLevel &&
+          other.recordedAt == this.recordedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class EnergyLogsCompanion extends UpdateCompanion<EnergyLog> {
+  final Value<int> id;
+  final Value<int> dailyRecordId;
+  final Value<String> energyLevel;
+  final Value<DateTime> recordedAt;
+  final Value<DateTime> createdAt;
+  const EnergyLogsCompanion({
+    this.id = const Value.absent(),
+    this.dailyRecordId = const Value.absent(),
+    this.energyLevel = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  EnergyLogsCompanion.insert({
+    this.id = const Value.absent(),
+    required int dailyRecordId,
+    required String energyLevel,
+    required DateTime recordedAt,
+    this.createdAt = const Value.absent(),
+  }) : dailyRecordId = Value(dailyRecordId),
+       energyLevel = Value(energyLevel),
+       recordedAt = Value(recordedAt);
+  static Insertable<EnergyLog> custom({
+    Expression<int>? id,
+    Expression<int>? dailyRecordId,
+    Expression<String>? energyLevel,
+    Expression<DateTime>? recordedAt,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (dailyRecordId != null) 'daily_record_id': dailyRecordId,
+      if (energyLevel != null) 'energy_level': energyLevel,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  EnergyLogsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? dailyRecordId,
+    Value<String>? energyLevel,
+    Value<DateTime>? recordedAt,
+    Value<DateTime>? createdAt,
+  }) {
+    return EnergyLogsCompanion(
+      id: id ?? this.id,
+      dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+      energyLevel: energyLevel ?? this.energyLevel,
+      recordedAt: recordedAt ?? this.recordedAt,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (dailyRecordId.present) {
+      map['daily_record_id'] = Variable<int>(dailyRecordId.value);
+    }
+    if (energyLevel.present) {
+      map['energy_level'] = Variable<String>(energyLevel.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EnergyLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('energyLevel: $energyLevel, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HomeCareCompletionsTable extends HomeCareCompletions
+    with TableInfo<$HomeCareCompletionsTable, HomeCareCompletion> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HomeCareCompletionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _dailyRecordIdMeta = const VerificationMeta(
+    'dailyRecordId',
+  );
+  @override
+  late final GeneratedColumn<int> dailyRecordId = GeneratedColumn<int>(
+    'daily_record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES daily_records (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _taskKeyMeta = const VerificationMeta(
+    'taskKey',
+  );
+  @override
+  late final GeneratedColumn<String> taskKey = GeneratedColumn<String>(
+    'task_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _taskTitleMeta = const VerificationMeta(
+    'taskTitle',
+  );
+  @override
+  late final GeneratedColumn<String> taskTitle = GeneratedColumn<String>(
+    'task_title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _energyLevelMeta = const VerificationMeta(
+    'energyLevel',
+  );
+  @override
+  late final GeneratedColumn<String> energyLevel = GeneratedColumn<String>(
+    'energy_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _energyAtCompletionMeta =
+      const VerificationMeta('energyAtCompletion');
+  @override
+  late final GeneratedColumn<String> energyAtCompletion =
+      GeneratedColumn<String>(
+        'energy_at_completion',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: DateTime.now,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    dailyRecordId,
+    taskKey,
+    taskTitle,
+    energyLevel,
+    energyAtCompletion,
+    completedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'home_care_completions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HomeCareCompletion> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('daily_record_id')) {
+      context.handle(
+        _dailyRecordIdMeta,
+        dailyRecordId.isAcceptableOrUnknown(
+          data['daily_record_id']!,
+          _dailyRecordIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_dailyRecordIdMeta);
+    }
+    if (data.containsKey('task_key')) {
+      context.handle(
+        _taskKeyMeta,
+        taskKey.isAcceptableOrUnknown(data['task_key']!, _taskKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskKeyMeta);
+    }
+    if (data.containsKey('task_title')) {
+      context.handle(
+        _taskTitleMeta,
+        taskTitle.isAcceptableOrUnknown(data['task_title']!, _taskTitleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskTitleMeta);
+    }
+    if (data.containsKey('energy_level')) {
+      context.handle(
+        _energyLevelMeta,
+        energyLevel.isAcceptableOrUnknown(
+          data['energy_level']!,
+          _energyLevelMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_energyLevelMeta);
+    }
+    if (data.containsKey('energy_at_completion')) {
+      context.handle(
+        _energyAtCompletionMeta,
+        energyAtCompletion.isAcceptableOrUnknown(
+          data['energy_at_completion']!,
+          _energyAtCompletionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {dailyRecordId, taskKey},
+  ];
+  @override
+  HomeCareCompletion map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HomeCareCompletion(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      dailyRecordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_record_id'],
+      )!,
+      taskKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_key'],
+      )!,
+      taskTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_title'],
+      )!,
+      energyLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}energy_level'],
+      )!,
+      energyAtCompletion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}energy_at_completion'],
+      ),
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HomeCareCompletionsTable createAlias(String alias) {
+    return $HomeCareCompletionsTable(attachedDatabase, alias);
+  }
+}
+
+class HomeCareCompletion extends DataClass
+    implements Insertable<HomeCareCompletion> {
+  final int id;
+  final int dailyRecordId;
+  final String taskKey;
+  final String taskTitle;
+
+  /// The Red/Yellow/Green recommendation list this task belongs to.
+  final String energyLevel;
+
+  /// The user's current five-level energy when the task was completed.
+  final String? energyAtCompletion;
+  final DateTime completedAt;
+  const HomeCareCompletion({
+    required this.id,
+    required this.dailyRecordId,
+    required this.taskKey,
+    required this.taskTitle,
+    required this.energyLevel,
+    this.energyAtCompletion,
+    required this.completedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['daily_record_id'] = Variable<int>(dailyRecordId);
+    map['task_key'] = Variable<String>(taskKey);
+    map['task_title'] = Variable<String>(taskTitle);
+    map['energy_level'] = Variable<String>(energyLevel);
+    if (!nullToAbsent || energyAtCompletion != null) {
+      map['energy_at_completion'] = Variable<String>(energyAtCompletion);
+    }
+    map['completed_at'] = Variable<DateTime>(completedAt);
+    return map;
+  }
+
+  HomeCareCompletionsCompanion toCompanion(bool nullToAbsent) {
+    return HomeCareCompletionsCompanion(
+      id: Value(id),
+      dailyRecordId: Value(dailyRecordId),
+      taskKey: Value(taskKey),
+      taskTitle: Value(taskTitle),
+      energyLevel: Value(energyLevel),
+      energyAtCompletion: energyAtCompletion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(energyAtCompletion),
+      completedAt: Value(completedAt),
+    );
+  }
+
+  factory HomeCareCompletion.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HomeCareCompletion(
+      id: serializer.fromJson<int>(json['id']),
+      dailyRecordId: serializer.fromJson<int>(json['dailyRecordId']),
+      taskKey: serializer.fromJson<String>(json['taskKey']),
+      taskTitle: serializer.fromJson<String>(json['taskTitle']),
+      energyLevel: serializer.fromJson<String>(json['energyLevel']),
+      energyAtCompletion: serializer.fromJson<String?>(
+        json['energyAtCompletion'],
+      ),
+      completedAt: serializer.fromJson<DateTime>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'dailyRecordId': serializer.toJson<int>(dailyRecordId),
+      'taskKey': serializer.toJson<String>(taskKey),
+      'taskTitle': serializer.toJson<String>(taskTitle),
+      'energyLevel': serializer.toJson<String>(energyLevel),
+      'energyAtCompletion': serializer.toJson<String?>(energyAtCompletion),
+      'completedAt': serializer.toJson<DateTime>(completedAt),
+    };
+  }
+
+  HomeCareCompletion copyWith({
+    int? id,
+    int? dailyRecordId,
+    String? taskKey,
+    String? taskTitle,
+    String? energyLevel,
+    Value<String?> energyAtCompletion = const Value.absent(),
+    DateTime? completedAt,
+  }) => HomeCareCompletion(
+    id: id ?? this.id,
+    dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+    taskKey: taskKey ?? this.taskKey,
+    taskTitle: taskTitle ?? this.taskTitle,
+    energyLevel: energyLevel ?? this.energyLevel,
+    energyAtCompletion: energyAtCompletion.present
+        ? energyAtCompletion.value
+        : this.energyAtCompletion,
+    completedAt: completedAt ?? this.completedAt,
+  );
+  HomeCareCompletion copyWithCompanion(HomeCareCompletionsCompanion data) {
+    return HomeCareCompletion(
+      id: data.id.present ? data.id.value : this.id,
+      dailyRecordId: data.dailyRecordId.present
+          ? data.dailyRecordId.value
+          : this.dailyRecordId,
+      taskKey: data.taskKey.present ? data.taskKey.value : this.taskKey,
+      taskTitle: data.taskTitle.present ? data.taskTitle.value : this.taskTitle,
+      energyLevel: data.energyLevel.present
+          ? data.energyLevel.value
+          : this.energyLevel,
+      energyAtCompletion: data.energyAtCompletion.present
+          ? data.energyAtCompletion.value
+          : this.energyAtCompletion,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomeCareCompletion(')
+          ..write('id: $id, ')
+          ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('taskKey: $taskKey, ')
+          ..write('taskTitle: $taskTitle, ')
+          ..write('energyLevel: $energyLevel, ')
+          ..write('energyAtCompletion: $energyAtCompletion, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    dailyRecordId,
+    taskKey,
+    taskTitle,
+    energyLevel,
+    energyAtCompletion,
+    completedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HomeCareCompletion &&
+          other.id == this.id &&
+          other.dailyRecordId == this.dailyRecordId &&
+          other.taskKey == this.taskKey &&
+          other.taskTitle == this.taskTitle &&
+          other.energyLevel == this.energyLevel &&
+          other.energyAtCompletion == this.energyAtCompletion &&
+          other.completedAt == this.completedAt);
+}
+
+class HomeCareCompletionsCompanion extends UpdateCompanion<HomeCareCompletion> {
+  final Value<int> id;
+  final Value<int> dailyRecordId;
+  final Value<String> taskKey;
+  final Value<String> taskTitle;
+  final Value<String> energyLevel;
+  final Value<String?> energyAtCompletion;
+  final Value<DateTime> completedAt;
+  const HomeCareCompletionsCompanion({
+    this.id = const Value.absent(),
+    this.dailyRecordId = const Value.absent(),
+    this.taskKey = const Value.absent(),
+    this.taskTitle = const Value.absent(),
+    this.energyLevel = const Value.absent(),
+    this.energyAtCompletion = const Value.absent(),
+    this.completedAt = const Value.absent(),
+  });
+  HomeCareCompletionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int dailyRecordId,
+    required String taskKey,
+    required String taskTitle,
+    required String energyLevel,
+    this.energyAtCompletion = const Value.absent(),
+    this.completedAt = const Value.absent(),
+  }) : dailyRecordId = Value(dailyRecordId),
+       taskKey = Value(taskKey),
+       taskTitle = Value(taskTitle),
+       energyLevel = Value(energyLevel);
+  static Insertable<HomeCareCompletion> custom({
+    Expression<int>? id,
+    Expression<int>? dailyRecordId,
+    Expression<String>? taskKey,
+    Expression<String>? taskTitle,
+    Expression<String>? energyLevel,
+    Expression<String>? energyAtCompletion,
+    Expression<DateTime>? completedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (dailyRecordId != null) 'daily_record_id': dailyRecordId,
+      if (taskKey != null) 'task_key': taskKey,
+      if (taskTitle != null) 'task_title': taskTitle,
+      if (energyLevel != null) 'energy_level': energyLevel,
+      if (energyAtCompletion != null)
+        'energy_at_completion': energyAtCompletion,
+      if (completedAt != null) 'completed_at': completedAt,
+    });
+  }
+
+  HomeCareCompletionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? dailyRecordId,
+    Value<String>? taskKey,
+    Value<String>? taskTitle,
+    Value<String>? energyLevel,
+    Value<String?>? energyAtCompletion,
+    Value<DateTime>? completedAt,
+  }) {
+    return HomeCareCompletionsCompanion(
+      id: id ?? this.id,
+      dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+      taskKey: taskKey ?? this.taskKey,
+      taskTitle: taskTitle ?? this.taskTitle,
+      energyLevel: energyLevel ?? this.energyLevel,
+      energyAtCompletion: energyAtCompletion ?? this.energyAtCompletion,
+      completedAt: completedAt ?? this.completedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (dailyRecordId.present) {
+      map['daily_record_id'] = Variable<int>(dailyRecordId.value);
+    }
+    if (taskKey.present) {
+      map['task_key'] = Variable<String>(taskKey.value);
+    }
+    if (taskTitle.present) {
+      map['task_title'] = Variable<String>(taskTitle.value);
+    }
+    if (energyLevel.present) {
+      map['energy_level'] = Variable<String>(energyLevel.value);
+    }
+    if (energyAtCompletion.present) {
+      map['energy_at_completion'] = Variable<String>(energyAtCompletion.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomeCareCompletionsCompanion(')
+          ..write('id: $id, ')
+          ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('taskKey: $taskKey, ')
+          ..write('taskTitle: $taskTitle, ')
+          ..write('energyLevel: $energyLevel, ')
+          ..write('energyAtCompletion: $energyAtCompletion, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $DailyRecordsTable dailyRecords = $DailyRecordsTable(this);
   late final $SleepLogsTable sleepLogs = $SleepLogsTable(this);
   late final $NapLogsTable napLogs = $NapLogsTable(this);
+  late final $CareLogsTable careLogs = $CareLogsTable(this);
+  late final $EnergyLogsTable energyLogs = $EnergyLogsTable(this);
+  late final $HomeCareCompletionsTable homeCareCompletions =
+      $HomeCareCompletionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2050,6 +3383,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     dailyRecords,
     sleepLogs,
     napLogs,
+    careLogs,
+    energyLogs,
+    homeCareCompletions,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2066,6 +3402,27 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('nap_logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'daily_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('care_logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'daily_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('energy_logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'daily_records',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('home_care_completions', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -2125,6 +3482,67 @@ final class $$DailyRecordsTableReferences
     ).filter((f) => f.dailyRecordId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_napLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CareLogsTable, List<CareLog>> _careLogsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.careLogs,
+    aliasName: 'daily_records__id__care_logs__daily_record_id',
+  );
+
+  $$CareLogsTableProcessedTableManager get careLogsRefs {
+    final manager = $$CareLogsTableTableManager(
+      $_db,
+      $_db.careLogs,
+    ).filter((f) => f.dailyRecordId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_careLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$EnergyLogsTable, List<EnergyLog>>
+  _energyLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.energyLogs,
+    aliasName: 'daily_records__id__energy_logs__daily_record_id',
+  );
+
+  $$EnergyLogsTableProcessedTableManager get energyLogsRefs {
+    final manager = $$EnergyLogsTableTableManager(
+      $_db,
+      $_db.energyLogs,
+    ).filter((f) => f.dailyRecordId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_energyLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $HomeCareCompletionsTable,
+    List<HomeCareCompletion>
+  >
+  _homeCareCompletionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.homeCareCompletions,
+        aliasName: 'daily_records__id__home_care_completions__daily_record_id',
+      );
+
+  $$HomeCareCompletionsTableProcessedTableManager get homeCareCompletionsRefs {
+    final manager = $$HomeCareCompletionsTableTableManager(
+      $_db,
+      $_db.homeCareCompletions,
+    ).filter((f) => f.dailyRecordId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _homeCareCompletionsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -2211,6 +3629,81 @@ class $$DailyRecordsTableFilterComposer
           }) => $$NapLogsTableFilterComposer(
             $db: $db,
             $table: $db.napLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> careLogsRefs(
+    Expression<bool> Function($$CareLogsTableFilterComposer f) f,
+  ) {
+    final $$CareLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.careLogs,
+      getReferencedColumn: (t) => t.dailyRecordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CareLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.careLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> energyLogsRefs(
+    Expression<bool> Function($$EnergyLogsTableFilterComposer f) f,
+  ) {
+    final $$EnergyLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.energyLogs,
+      getReferencedColumn: (t) => t.dailyRecordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EnergyLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.energyLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> homeCareCompletionsRefs(
+    Expression<bool> Function($$HomeCareCompletionsTableFilterComposer f) f,
+  ) {
+    final $$HomeCareCompletionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.homeCareCompletions,
+      getReferencedColumn: (t) => t.dailyRecordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HomeCareCompletionsTableFilterComposer(
+            $db: $db,
+            $table: $db.homeCareCompletions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2341,6 +3834,82 @@ class $$DailyRecordsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> careLogsRefs<T extends Object>(
+    Expression<T> Function($$CareLogsTableAnnotationComposer a) f,
+  ) {
+    final $$CareLogsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.careLogs,
+      getReferencedColumn: (t) => t.dailyRecordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CareLogsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.careLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> energyLogsRefs<T extends Object>(
+    Expression<T> Function($$EnergyLogsTableAnnotationComposer a) f,
+  ) {
+    final $$EnergyLogsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.energyLogs,
+      getReferencedColumn: (t) => t.dailyRecordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EnergyLogsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.energyLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> homeCareCompletionsRefs<T extends Object>(
+    Expression<T> Function($$HomeCareCompletionsTableAnnotationComposer a) f,
+  ) {
+    final $$HomeCareCompletionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.homeCareCompletions,
+          getReferencedColumn: (t) => t.dailyRecordId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$HomeCareCompletionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.homeCareCompletions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$DailyRecordsTableTableManager
@@ -2356,7 +3925,13 @@ class $$DailyRecordsTableTableManager
           $$DailyRecordsTableUpdateCompanionBuilder,
           (DailyRecord, $$DailyRecordsTableReferences),
           DailyRecord,
-          PrefetchHooks Function({bool sleepLogsRefs, bool napLogsRefs})
+          PrefetchHooks Function({
+            bool sleepLogsRefs,
+            bool napLogsRefs,
+            bool careLogsRefs,
+            bool energyLogsRefs,
+            bool homeCareCompletionsRefs,
+          })
         > {
   $$DailyRecordsTableTableManager(_$AppDatabase db, $DailyRecordsTable table)
     : super(
@@ -2410,12 +3985,21 @@ class $$DailyRecordsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({sleepLogsRefs = false, napLogsRefs = false}) {
+              ({
+                sleepLogsRefs = false,
+                napLogsRefs = false,
+                careLogsRefs = false,
+                energyLogsRefs = false,
+                homeCareCompletionsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (sleepLogsRefs) db.sleepLogs,
                     if (napLogsRefs) db.napLogs,
+                    if (careLogsRefs) db.careLogs,
+                    if (energyLogsRefs) db.energyLogs,
+                    if (homeCareCompletionsRefs) db.homeCareCompletions,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -2462,6 +4046,69 @@ class $$DailyRecordsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (careLogsRefs)
+                        await $_getPrefetchedData<
+                          DailyRecord,
+                          $DailyRecordsTable,
+                          CareLog
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DailyRecordsTableReferences
+                              ._careLogsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DailyRecordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).careLogsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.dailyRecordId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (energyLogsRefs)
+                        await $_getPrefetchedData<
+                          DailyRecord,
+                          $DailyRecordsTable,
+                          EnergyLog
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DailyRecordsTableReferences
+                              ._energyLogsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DailyRecordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).energyLogsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.dailyRecordId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (homeCareCompletionsRefs)
+                        await $_getPrefetchedData<
+                          DailyRecord,
+                          $DailyRecordsTable,
+                          HomeCareCompletion
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DailyRecordsTableReferences
+                              ._homeCareCompletionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DailyRecordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).homeCareCompletionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.dailyRecordId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -2482,7 +4129,13 @@ typedef $$DailyRecordsTableProcessedTableManager =
       $$DailyRecordsTableUpdateCompanionBuilder,
       (DailyRecord, $$DailyRecordsTableReferences),
       DailyRecord,
-      PrefetchHooks Function({bool sleepLogsRefs, bool napLogsRefs})
+      PrefetchHooks Function({
+        bool sleepLogsRefs,
+        bool napLogsRefs,
+        bool careLogsRefs,
+        bool energyLogsRefs,
+        bool homeCareCompletionsRefs,
+      })
     >;
 typedef $$SleepLogsTableCreateCompanionBuilder =
     SleepLogsCompanion Function({
@@ -3430,6 +5083,1049 @@ typedef $$NapLogsTableProcessedTableManager =
       NapLog,
       PrefetchHooks Function({bool dailyRecordId})
     >;
+typedef $$CareLogsTableCreateCompanionBuilder =
+    CareLogsCompanion Function({
+      Value<int> id,
+      required int dailyRecordId,
+      Value<int?> moodScore,
+      Value<String?> moodNotes,
+      Value<String?> energyLevel,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$CareLogsTableUpdateCompanionBuilder =
+    CareLogsCompanion Function({
+      Value<int> id,
+      Value<int> dailyRecordId,
+      Value<int?> moodScore,
+      Value<String?> moodNotes,
+      Value<String?> energyLevel,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$CareLogsTableReferences
+    extends BaseReferences<_$AppDatabase, $CareLogsTable, CareLog> {
+  $$CareLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DailyRecordsTable _dailyRecordIdTable(_$AppDatabase db) => db
+      .dailyRecords
+      .createAlias('care_logs__daily_record_id__daily_records__id');
+
+  $$DailyRecordsTableProcessedTableManager get dailyRecordId {
+    final $_column = $_itemColumn<int>('daily_record_id')!;
+
+    final manager = $$DailyRecordsTableTableManager(
+      $_db,
+      $_db.dailyRecords,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_dailyRecordIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CareLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $CareLogsTable> {
+  $$CareLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get moodScore => $composableBuilder(
+    column: $table.moodScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get moodNotes => $composableBuilder(
+    column: $table.moodNotes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DailyRecordsTableFilterComposer get dailyRecordId {
+    final $$DailyRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CareLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CareLogsTable> {
+  $$CareLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get moodScore => $composableBuilder(
+    column: $table.moodScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get moodNotes => $composableBuilder(
+    column: $table.moodNotes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DailyRecordsTableOrderingComposer get dailyRecordId {
+    final $$DailyRecordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CareLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CareLogsTable> {
+  $$CareLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get moodScore =>
+      $composableBuilder(column: $table.moodScore, builder: (column) => column);
+
+  GeneratedColumn<String> get moodNotes =>
+      $composableBuilder(column: $table.moodNotes, builder: (column) => column);
+
+  GeneratedColumn<String> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$DailyRecordsTableAnnotationComposer get dailyRecordId {
+    final $$DailyRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CareLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CareLogsTable,
+          CareLog,
+          $$CareLogsTableFilterComposer,
+          $$CareLogsTableOrderingComposer,
+          $$CareLogsTableAnnotationComposer,
+          $$CareLogsTableCreateCompanionBuilder,
+          $$CareLogsTableUpdateCompanionBuilder,
+          (CareLog, $$CareLogsTableReferences),
+          CareLog,
+          PrefetchHooks Function({bool dailyRecordId})
+        > {
+  $$CareLogsTableTableManager(_$AppDatabase db, $CareLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CareLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CareLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CareLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> dailyRecordId = const Value.absent(),
+                Value<int?> moodScore = const Value.absent(),
+                Value<String?> moodNotes = const Value.absent(),
+                Value<String?> energyLevel = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => CareLogsCompanion(
+                id: id,
+                dailyRecordId: dailyRecordId,
+                moodScore: moodScore,
+                moodNotes: moodNotes,
+                energyLevel: energyLevel,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int dailyRecordId,
+                Value<int?> moodScore = const Value.absent(),
+                Value<String?> moodNotes = const Value.absent(),
+                Value<String?> energyLevel = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => CareLogsCompanion.insert(
+                id: id,
+                dailyRecordId: dailyRecordId,
+                moodScore: moodScore,
+                moodNotes: moodNotes,
+                energyLevel: energyLevel,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CareLogsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({dailyRecordId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (dailyRecordId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.dailyRecordId,
+                                referencedTable: $$CareLogsTableReferences
+                                    ._dailyRecordIdTable(db),
+                                referencedColumn: $$CareLogsTableReferences
+                                    ._dailyRecordIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CareLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CareLogsTable,
+      CareLog,
+      $$CareLogsTableFilterComposer,
+      $$CareLogsTableOrderingComposer,
+      $$CareLogsTableAnnotationComposer,
+      $$CareLogsTableCreateCompanionBuilder,
+      $$CareLogsTableUpdateCompanionBuilder,
+      (CareLog, $$CareLogsTableReferences),
+      CareLog,
+      PrefetchHooks Function({bool dailyRecordId})
+    >;
+typedef $$EnergyLogsTableCreateCompanionBuilder =
+    EnergyLogsCompanion Function({
+      Value<int> id,
+      required int dailyRecordId,
+      required String energyLevel,
+      required DateTime recordedAt,
+      Value<DateTime> createdAt,
+    });
+typedef $$EnergyLogsTableUpdateCompanionBuilder =
+    EnergyLogsCompanion Function({
+      Value<int> id,
+      Value<int> dailyRecordId,
+      Value<String> energyLevel,
+      Value<DateTime> recordedAt,
+      Value<DateTime> createdAt,
+    });
+
+final class $$EnergyLogsTableReferences
+    extends BaseReferences<_$AppDatabase, $EnergyLogsTable, EnergyLog> {
+  $$EnergyLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DailyRecordsTable _dailyRecordIdTable(_$AppDatabase db) => db
+      .dailyRecords
+      .createAlias('energy_logs__daily_record_id__daily_records__id');
+
+  $$DailyRecordsTableProcessedTableManager get dailyRecordId {
+    final $_column = $_itemColumn<int>('daily_record_id')!;
+
+    final manager = $$DailyRecordsTableTableManager(
+      $_db,
+      $_db.dailyRecords,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_dailyRecordIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$EnergyLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $EnergyLogsTable> {
+  $$EnergyLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DailyRecordsTableFilterComposer get dailyRecordId {
+    final $$DailyRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EnergyLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $EnergyLogsTable> {
+  $$EnergyLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DailyRecordsTableOrderingComposer get dailyRecordId {
+    final $$DailyRecordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EnergyLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EnergyLogsTable> {
+  $$EnergyLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$DailyRecordsTableAnnotationComposer get dailyRecordId {
+    final $$DailyRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EnergyLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EnergyLogsTable,
+          EnergyLog,
+          $$EnergyLogsTableFilterComposer,
+          $$EnergyLogsTableOrderingComposer,
+          $$EnergyLogsTableAnnotationComposer,
+          $$EnergyLogsTableCreateCompanionBuilder,
+          $$EnergyLogsTableUpdateCompanionBuilder,
+          (EnergyLog, $$EnergyLogsTableReferences),
+          EnergyLog,
+          PrefetchHooks Function({bool dailyRecordId})
+        > {
+  $$EnergyLogsTableTableManager(_$AppDatabase db, $EnergyLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EnergyLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EnergyLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EnergyLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> dailyRecordId = const Value.absent(),
+                Value<String> energyLevel = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => EnergyLogsCompanion(
+                id: id,
+                dailyRecordId: dailyRecordId,
+                energyLevel: energyLevel,
+                recordedAt: recordedAt,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int dailyRecordId,
+                required String energyLevel,
+                required DateTime recordedAt,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => EnergyLogsCompanion.insert(
+                id: id,
+                dailyRecordId: dailyRecordId,
+                energyLevel: energyLevel,
+                recordedAt: recordedAt,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$EnergyLogsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({dailyRecordId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (dailyRecordId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.dailyRecordId,
+                                referencedTable: $$EnergyLogsTableReferences
+                                    ._dailyRecordIdTable(db),
+                                referencedColumn: $$EnergyLogsTableReferences
+                                    ._dailyRecordIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EnergyLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EnergyLogsTable,
+      EnergyLog,
+      $$EnergyLogsTableFilterComposer,
+      $$EnergyLogsTableOrderingComposer,
+      $$EnergyLogsTableAnnotationComposer,
+      $$EnergyLogsTableCreateCompanionBuilder,
+      $$EnergyLogsTableUpdateCompanionBuilder,
+      (EnergyLog, $$EnergyLogsTableReferences),
+      EnergyLog,
+      PrefetchHooks Function({bool dailyRecordId})
+    >;
+typedef $$HomeCareCompletionsTableCreateCompanionBuilder =
+    HomeCareCompletionsCompanion Function({
+      Value<int> id,
+      required int dailyRecordId,
+      required String taskKey,
+      required String taskTitle,
+      required String energyLevel,
+      Value<String?> energyAtCompletion,
+      Value<DateTime> completedAt,
+    });
+typedef $$HomeCareCompletionsTableUpdateCompanionBuilder =
+    HomeCareCompletionsCompanion Function({
+      Value<int> id,
+      Value<int> dailyRecordId,
+      Value<String> taskKey,
+      Value<String> taskTitle,
+      Value<String> energyLevel,
+      Value<String?> energyAtCompletion,
+      Value<DateTime> completedAt,
+    });
+
+final class $$HomeCareCompletionsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $HomeCareCompletionsTable,
+          HomeCareCompletion
+        > {
+  $$HomeCareCompletionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DailyRecordsTable _dailyRecordIdTable(_$AppDatabase db) => db
+      .dailyRecords
+      .createAlias('home_care_completions__daily_record_id__daily_records__id');
+
+  $$DailyRecordsTableProcessedTableManager get dailyRecordId {
+    final $_column = $_itemColumn<int>('daily_record_id')!;
+
+    final manager = $$DailyRecordsTableTableManager(
+      $_db,
+      $_db.dailyRecords,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_dailyRecordIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$HomeCareCompletionsTableFilterComposer
+    extends Composer<_$AppDatabase, $HomeCareCompletionsTable> {
+  $$HomeCareCompletionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get taskKey => $composableBuilder(
+    column: $table.taskKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get taskTitle => $composableBuilder(
+    column: $table.taskTitle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get energyAtCompletion => $composableBuilder(
+    column: $table.energyAtCompletion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DailyRecordsTableFilterComposer get dailyRecordId {
+    final $$DailyRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HomeCareCompletionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $HomeCareCompletionsTable> {
+  $$HomeCareCompletionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get taskKey => $composableBuilder(
+    column: $table.taskKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get taskTitle => $composableBuilder(
+    column: $table.taskTitle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get energyAtCompletion => $composableBuilder(
+    column: $table.energyAtCompletion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DailyRecordsTableOrderingComposer get dailyRecordId {
+    final $$DailyRecordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HomeCareCompletionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HomeCareCompletionsTable> {
+  $$HomeCareCompletionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get taskKey =>
+      $composableBuilder(column: $table.taskKey, builder: (column) => column);
+
+  GeneratedColumn<String> get taskTitle =>
+      $composableBuilder(column: $table.taskTitle, builder: (column) => column);
+
+  GeneratedColumn<String> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get energyAtCompletion => $composableBuilder(
+    column: $table.energyAtCompletion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
+  $$DailyRecordsTableAnnotationComposer get dailyRecordId {
+    final $$DailyRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dailyRecordId,
+      referencedTable: $db.dailyRecords,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HomeCareCompletionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HomeCareCompletionsTable,
+          HomeCareCompletion,
+          $$HomeCareCompletionsTableFilterComposer,
+          $$HomeCareCompletionsTableOrderingComposer,
+          $$HomeCareCompletionsTableAnnotationComposer,
+          $$HomeCareCompletionsTableCreateCompanionBuilder,
+          $$HomeCareCompletionsTableUpdateCompanionBuilder,
+          (HomeCareCompletion, $$HomeCareCompletionsTableReferences),
+          HomeCareCompletion,
+          PrefetchHooks Function({bool dailyRecordId})
+        > {
+  $$HomeCareCompletionsTableTableManager(
+    _$AppDatabase db,
+    $HomeCareCompletionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HomeCareCompletionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HomeCareCompletionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$HomeCareCompletionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> dailyRecordId = const Value.absent(),
+                Value<String> taskKey = const Value.absent(),
+                Value<String> taskTitle = const Value.absent(),
+                Value<String> energyLevel = const Value.absent(),
+                Value<String?> energyAtCompletion = const Value.absent(),
+                Value<DateTime> completedAt = const Value.absent(),
+              }) => HomeCareCompletionsCompanion(
+                id: id,
+                dailyRecordId: dailyRecordId,
+                taskKey: taskKey,
+                taskTitle: taskTitle,
+                energyLevel: energyLevel,
+                energyAtCompletion: energyAtCompletion,
+                completedAt: completedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int dailyRecordId,
+                required String taskKey,
+                required String taskTitle,
+                required String energyLevel,
+                Value<String?> energyAtCompletion = const Value.absent(),
+                Value<DateTime> completedAt = const Value.absent(),
+              }) => HomeCareCompletionsCompanion.insert(
+                id: id,
+                dailyRecordId: dailyRecordId,
+                taskKey: taskKey,
+                taskTitle: taskTitle,
+                energyLevel: energyLevel,
+                energyAtCompletion: energyAtCompletion,
+                completedAt: completedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$HomeCareCompletionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({dailyRecordId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (dailyRecordId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.dailyRecordId,
+                                referencedTable:
+                                    $$HomeCareCompletionsTableReferences
+                                        ._dailyRecordIdTable(db),
+                                referencedColumn:
+                                    $$HomeCareCompletionsTableReferences
+                                        ._dailyRecordIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$HomeCareCompletionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HomeCareCompletionsTable,
+      HomeCareCompletion,
+      $$HomeCareCompletionsTableFilterComposer,
+      $$HomeCareCompletionsTableOrderingComposer,
+      $$HomeCareCompletionsTableAnnotationComposer,
+      $$HomeCareCompletionsTableCreateCompanionBuilder,
+      $$HomeCareCompletionsTableUpdateCompanionBuilder,
+      (HomeCareCompletion, $$HomeCareCompletionsTableReferences),
+      HomeCareCompletion,
+      PrefetchHooks Function({bool dailyRecordId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3440,4 +6136,10 @@ class $AppDatabaseManager {
       $$SleepLogsTableTableManager(_db, _db.sleepLogs);
   $$NapLogsTableTableManager get napLogs =>
       $$NapLogsTableTableManager(_db, _db.napLogs);
+  $$CareLogsTableTableManager get careLogs =>
+      $$CareLogsTableTableManager(_db, _db.careLogs);
+  $$EnergyLogsTableTableManager get energyLogs =>
+      $$EnergyLogsTableTableManager(_db, _db.energyLogs);
+  $$HomeCareCompletionsTableTableManager get homeCareCompletions =>
+      $$HomeCareCompletionsTableTableManager(_db, _db.homeCareCompletions);
 }

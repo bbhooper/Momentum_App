@@ -369,20 +369,23 @@ void main() {
       expect(form.message, 'Please rate how you felt after waking.');
     });
 
-    test('shows a validation message when wake-up feeling is invalid', () async {
-      await initialiseController();
+    test(
+      'shows a validation message when wake-up feeling is invalid',
+      () async {
+        await initialiseController();
 
-      final controller = container.read(napFormControllerProvider.notifier);
+        final controller = container.read(napFormControllerProvider.notifier);
 
-      completeRequiredAnswers(controller, wakeFeeling: 6);
+        completeRequiredAnswers(controller, wakeFeeling: 6);
 
-      final wasSaved = await controller.save();
-      final form = container.read(napFormControllerProvider).requireValue;
+        final wasSaved = await controller.save();
+        final form = container.read(napFormControllerProvider).requireValue;
 
-      expect(wasSaved, isFalse);
-      expect(form.naps, isEmpty);
-      expect(form.message, 'Wake-up feeling must be between 1 and 5.');
-    });
+        expect(wasSaved, isFalse);
+        expect(form.naps, isEmpty);
+        expect(form.message, 'Wake-up feeling must be between 1 and 5.');
+      },
+    );
 
     test('clears the current message', () async {
       await initialiseController();

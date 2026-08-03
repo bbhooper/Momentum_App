@@ -37,10 +37,7 @@ class MomentumTheme {
     );
 
     final loraTextTheme = GoogleFonts.loraTextTheme(
-      ThemeData(
-        brightness: brightness,
-        colorScheme: colorScheme,
-      ).textTheme,
+      ThemeData(brightness: brightness, colorScheme: colorScheme).textTheme,
     );
 
     // copyWith preserves Lora's font family while applying Momentum's
@@ -129,17 +126,13 @@ class MomentumTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: palette.notebook,
       textTheme: textTheme,
-      extensions: <ThemeExtension<dynamic>>[
-        palette,
-      ],
+      extensions: <ThemeExtension<dynamic>>[palette],
     );
 
     return baseTheme.copyWith(
       textTheme: textTheme,
       dividerColor: palette.divider,
-      iconTheme: IconThemeData(
-        color: palette.primaryInk,
-      ),
+      iconTheme: IconThemeData(color: palette.primaryInk),
 
       cardTheme: CardThemeData(
         color: palette.card,
@@ -169,41 +162,27 @@ class MomentumTheme {
           horizontal: 16,
           vertical: 15,
         ),
-        labelStyle: textTheme.bodyMedium?.copyWith(
-          color: palette.secondaryInk,
-        ),
+        labelStyle: textTheme.bodyMedium?.copyWith(color: palette.secondaryInk),
         floatingLabelStyle: textTheme.bodyMedium?.copyWith(
           color: palette.secondaryInk,
         ),
         hintStyle: textTheme.bodyMedium?.copyWith(
           color: palette.secondaryInk.withValues(alpha: 0.75),
         ),
-        helperStyle: textTheme.bodySmall?.copyWith(
-          color: palette.secondaryInk,
-        ),
-        errorStyle: textTheme.bodySmall?.copyWith(
-          color: palette.error,
-        ),
+        helperStyle: textTheme.bodySmall?.copyWith(color: palette.secondaryInk),
+        errorStyle: textTheme.bodySmall?.copyWith(color: palette.error),
         prefixIconColor: palette.secondaryInk,
         suffixIconColor: palette.secondaryInk,
         enabledBorder: outlineBorder,
         disabledBorder: outlineBorder,
         focusedBorder: outlineBorder.copyWith(
-          borderSide: BorderSide(
-            color: palette.secondaryInk,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: palette.secondaryInk, width: 1.5),
         ),
         errorBorder: outlineBorder.copyWith(
-          borderSide: BorderSide(
-            color: palette.error,
-          ),
+          borderSide: BorderSide(color: palette.error),
         ),
         focusedErrorBorder: outlineBorder.copyWith(
-          borderSide: BorderSide(
-            color: palette.error,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: palette.error, width: 1.5),
         ),
       ),
 
@@ -237,8 +216,7 @@ class MomentumTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: palette.secondaryInk,
-          disabledForegroundColor:
-              palette.secondaryInk.withValues(alpha: 0.5),
+          disabledForegroundColor: palette.secondaryInk.withValues(alpha: 0.5),
           textStyle: textTheme.labelLarge,
         ),
       ),
@@ -250,24 +228,20 @@ class MomentumTheme {
         indicatorColor: palette.accent,
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
-          (states) {
-            return textTheme.labelMedium?.copyWith(
-              color: states.contains(WidgetState.selected)
-                  ? palette.primaryInk
-                  : palette.secondaryInk,
-            );
-          },
-        ),
-        iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>(
-          (states) {
-            return IconThemeData(
-              color: states.contains(WidgetState.selected)
-                  ? palette.primaryInk
-                  : palette.secondaryInk,
-            );
-          },
-        ),
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>((states) {
+          return textTheme.labelMedium?.copyWith(
+            color: states.contains(WidgetState.selected)
+                ? palette.primaryInk
+                : palette.secondaryInk,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>((states) {
+          return IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? palette.primaryInk
+                : palette.secondaryInk,
+          );
+        }),
       ),
 
       progressIndicatorTheme: ProgressIndicatorThemeData(
@@ -282,9 +256,7 @@ class MomentumTheme {
           color: palette.notebook,
         ),
         actionTextColor: palette.accent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         behavior: SnackBarBehavior.floating,
       ),
 
@@ -293,31 +265,25 @@ class MomentumTheme {
         surfaceTintColor: Colors.transparent,
         titleTextStyle: textTheme.titleLarge,
         contentTextStyle: textTheme.bodyMedium,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
 
       timePickerTheme: TimePickerThemeData(
         backgroundColor: palette.card,
         dialBackgroundColor: palette.notebook,
         dialHandColor: palette.secondaryInk,
-        dialTextColor: WidgetStateColor.resolveWith(
-          (states) {
-            return states.contains(WidgetState.selected)
-                ? palette.notebook
-                : palette.primaryInk;
-          },
-        ),
+        dialTextColor: WidgetStateColor.resolveWith((states) {
+          return states.contains(WidgetState.selected)
+              ? palette.notebook
+              : palette.primaryInk;
+        }),
         hourMinuteColor: palette.accent,
         hourMinuteTextColor: palette.primaryInk,
         entryModeIconColor: palette.secondaryInk,
         helpTextStyle: textTheme.labelMedium,
         dayPeriodTextColor: palette.primaryInk,
         dayPeriodColor: palette.accent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
     );
   }

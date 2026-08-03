@@ -2,18 +2,30 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'tables/care_logs.dart';
 import 'tables/daily_records.dart';
+import 'tables/energy_logs.dart';
+import 'tables/home_care_completions.dart';
 import 'tables/nap_logs.dart';
 import 'tables/sleep_logs.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [DailyRecords, SleepLogs, NapLogs])
+@DriftDatabase(
+  tables: [
+    DailyRecords,
+    SleepLogs,
+    NapLogs,
+    CareLogs,
+    EnergyLogs,
+    HomeCareCompletions,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -51,6 +63,38 @@ class AppDatabase extends _$AppDatabase {
             'UPDATE nap_logs SET wake_feeling = quality '
             'WHERE wake_feeling IS NULL AND quality IS NOT NULL',
           );
+        }
+
+        if (from < 6) {
+          await migrator.createTable(careLogs);
+          await migrator.createTable(homeCareCompletions);
+        }
+
+        if (from < 7) {
+          await migrator.createTable(energyLogs);
+          if (from >= 6) {
+            await migrator.addColumn(
+              homeCareCompletions,
+              homeCareCompletions.energyAtCompletion,
+            );
+          }
+
+          // Preserve the latest energy chosen in the first Care MVP.
+          await customStatement('''
+            INSERT INTO energy_logs
+              (daily_record_id, energy_level, recorded_at, created_at)
+            SELECT
+              daily_record_id,
+              CASE energy_level
+                WHEN 'red' THEN 'drained'
+                WHEN 'yellow' THEN 'okay'
+                WHEN 'green' THEN 'good'
+              END,
+              updated_at,
+              updated_at
+            FROM care_logs
+            WHERE energy_level IS NOT NULL
+          ''');
         }
       },
       beforeOpen: (details) async {
