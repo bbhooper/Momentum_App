@@ -6,6 +6,7 @@ class HomeCareTask {
     required this.userDemandLevel,
     required this.sortOrder,
     required this.isDefault,
+    this.isActive = true,
   });
 
   final int id;
@@ -20,6 +21,7 @@ class HomeCareTask {
 
   final int sortOrder;
   final bool isDefault;
+  final bool isActive;
 
   /// Retained while the v7 completion band's historical field still exists.
   String get legacyBand {

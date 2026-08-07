@@ -1,14 +1,26 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:momentum/app/providers/theme_mode_provider.dart';
+import 'package:momentum/core/database/app_database.dart';
 import 'package:momentum/core/theme/momentum_palette.dart';
+import 'package:momentum/features/care/application/care_repository_provider.dart';
+import 'package:momentum/features/care/data/repositories/care_repository.dart';
 import 'package:momentum/features/settings/presentation/pages/display_theme_settings_page.dart';
 import 'package:momentum/features/settings/presentation/pages/home_care_settings_page.dart';
 import 'package:momentum/features/settings/presentation/pages/settings_page.dart';
 
 void main() {
+  late AppDatabase database;
+
+  setUp(() {
+    database = AppDatabase(NativeDatabase.memory());
+  });
+
+  tearDown(() => database.close());
+
   testWidgets('Settings shows the implemented and planned sections', (
     tester,
   ) async {
@@ -59,15 +71,20 @@ void main() {
 
   testWidgets('Home Care settings destination is available', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
-        child: _SettingsTestApp(initialLocation: '/settings/home-care'),
+      ProviderScope(
+        overrides: [
+          careRepositoryProvider.overrideWithValue(CareRepository(database)),
+        ],
+        child: const _SettingsTestApp(initialLocation: '/settings/home-care'),
       ),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Home Care'), findsOneWidget);
-    expect(find.text('Task customisation'), findsOneWidget);
-    expect(find.textContaining('built-in task library'), findsOneWidget);
+    expect(find.text('Low demand'), findsOneWidget);
+    expect(find.text('Medium demand'), findsOneWidget);
+    expect(find.text('High demand'), findsOneWidget);
+    expect(find.byKey(const ValueKey('add-home-care-task')), findsOneWidget);
   });
 }
 
