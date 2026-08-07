@@ -11,6 +11,19 @@ enum EnergyLevel {
   final String description;
   final String homeCareBand;
 
+  String get homeCareDemand {
+    switch (this) {
+      case EnergyLevel.drained:
+      case EnergyLevel.flat:
+        return 'low';
+      case EnergyLevel.okay:
+        return 'medium';
+      case EnergyLevel.good:
+      case EnergyLevel.energised:
+        return 'high';
+    }
+  }
+
   static EnergyLevel? fromStorage(String? value) {
     for (final level in values) {
       if (level.name == value) return level;

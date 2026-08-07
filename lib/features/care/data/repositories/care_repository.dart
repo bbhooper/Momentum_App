@@ -26,6 +26,28 @@ class CareRepository {
         .get();
   }
 
+  Future<List<HomeCareTask>> getHomeCareTasks() async {
+    await _ensureDefaultTasks();
+
+    final records =
+        await (_database.select(_database.homeCareTasks)
+              ..where((task) => task.isActive.equals(true))
+              ..orderBy([(task) => OrderingTerm.asc(task.sortOrder)]))
+            .get();
+
+    return [
+      for (final record in records)
+        HomeCareTask(
+          id: record.id,
+          key: record.stableKey,
+          title: record.title,
+          userDemandLevel: record.userDemandLevel,
+          sortOrder: record.sortOrder,
+          isDefault: record.isDefault,
+        ),
+    ];
+  }
+
   Future<List<HomeCareCompletion>> getCompletions(String dateKey) async {
     final daily = await _database.findDailyRecord(dateKey);
     if (daily == null) return const [];
@@ -80,6 +102,8 @@ class CareRepository {
     required String dateKey,
     required EnergyLevel level,
     DateTime? recordedAt,
+    String captureSource = 'care_page',
+    String context = 'general',
   }) async {
     final daily = await _database.ensureDailyRecord(dateKey);
     final id = await _database
@@ -89,6 +113,8 @@ class CareRepository {
             dailyRecordId: daily.id,
             energyLevel: level.name,
             recordedAt: recordedAt ?? DateTime.now(),
+            captureSource: Value(captureSource),
+            context: Value(context),
           ),
         );
     return (_database.select(
@@ -131,7 +157,9 @@ class CareRepository {
             dailyRecordId: daily.id,
             taskKey: task.key,
             taskTitle: task.title,
-            energyLevel: task.energyLevel,
+            energyLevel: task.legacyBand,
+            taskId: Value(task.id),
+            userDemandAtCompletion: Value(task.userDemandLevel),
             energyAtCompletion: Value(currentEnergy?.name),
           ),
           mode: InsertMode.insertOrIgnore,
@@ -145,6 +173,43 @@ class CareRepository {
       _database.careLogs,
     )..where((log) => log.dailyRecordId.equals(daily.id))).go();
     return deleted > 0;
+  }
+
+  Future<void> _ensureDefaultTasks() async {
+    for (final seed in defaultHomeCareTaskSeeds) {
+      await _database
+          .into(_database.homeCareTasks)
+          .insert(
+            HomeCareTasksCompanion.insert(
+              stableKey: seed.key,
+              title: seed.title,
+              userDemandLevel: seed.userDemandLevel,
+              sortOrder: Value(seed.sortOrder),
+              isDefault: const Value(true),
+            ),
+            mode: InsertMode.insertOrIgnore,
+          );
+
+      final task = await (_database.select(
+        _database.homeCareTasks,
+      )..where((row) => row.stableKey.equals(seed.key))).getSingle();
+
+      final hasHistory = await (_database.select(
+        _database.homeCareTaskDemandHistory,
+      )..where((row) => row.homeCareTaskId.equals(task.id))).getSingleOrNull();
+
+      if (hasHistory == null) {
+        await _database
+            .into(_database.homeCareTaskDemandHistory)
+            .insert(
+              HomeCareTaskDemandHistoryCompanion.insert(
+                homeCareTaskId: task.id,
+                demandLevel: task.userDemandLevel,
+                effectiveFrom: task.createdAt,
+              ),
+            );
+      }
+    }
   }
 
   String? _normalise(String? value) {

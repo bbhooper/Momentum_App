@@ -6,6 +6,8 @@ import 'tables/care_logs.dart';
 import 'tables/daily_records.dart';
 import 'tables/energy_logs.dart';
 import 'tables/home_care_completions.dart';
+import 'tables/home_care_task_demand_history.dart';
+import 'tables/home_care_tasks.dart';
 import 'tables/nap_logs.dart';
 import 'tables/sleep_logs.dart';
 
@@ -18,6 +20,8 @@ part 'app_database.g.dart';
     NapLogs,
     CareLogs,
     EnergyLogs,
+    HomeCareTasks,
+    HomeCareTaskDemandHistory,
     HomeCareCompletions,
   ],
 )
@@ -25,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -96,6 +100,75 @@ class AppDatabase extends _$AppDatabase {
             WHERE energy_level IS NOT NULL
           ''');
         }
+
+        if (from < 8) {
+          await migrator.createTable(homeCareTasks);
+          await migrator.createTable(homeCareTaskDemandHistory);
+
+          // A database already at v7 has EnergyLogs without provenance.
+          if (from >= 7) {
+            await migrator.addColumn(energyLogs, energyLogs.captureSource);
+            await migrator.addColumn(energyLogs, energyLogs.context);
+          }
+
+          // Databases that already had HomeCareCompletions need the v8 fields.
+          if (from >= 6) {
+            await migrator.addColumn(
+              homeCareCompletions,
+              homeCareCompletions.taskId,
+            );
+            await migrator.addColumn(
+              homeCareCompletions,
+              homeCareCompletions.userDemandAtCompletion,
+            );
+          }
+
+          // Preserve the user's historical task-demand classification.
+          await customStatement('''
+            UPDATE home_care_completions
+            SET user_demand_at_completion =
+              CASE energy_level
+                WHEN 'red' THEN 'low'
+                WHEN 'yellow' THEN 'medium'
+                WHEN 'green' THEN 'high'
+              END
+            WHERE user_demand_at_completion IS NULL
+          ''');
+
+          // Existing sleep energy becomes part of the canonical energy timeline.
+          await customStatement('''
+            INSERT INTO energy_logs
+              (
+                daily_record_id,
+                energy_level,
+                recorded_at,
+                capture_source,
+                context,
+                created_at
+              )
+            SELECT
+              daily_record_id,
+              CASE energy
+                WHEN 1 THEN 'drained'
+                WHEN 2 THEN 'flat'
+                WHEN 3 THEN 'okay'
+                WHEN 4 THEN 'good'
+                WHEN 5 THEN 'energised'
+              END,
+              wake_time,
+              'sleep_form',
+              'wake',
+              updated_at
+            FROM sleep_logs
+            WHERE NOT EXISTS (
+              SELECT 1
+              FROM energy_logs
+              WHERE energy_logs.daily_record_id = sleep_logs.daily_record_id
+                AND energy_logs.capture_source = 'sleep_form'
+                AND energy_logs.context = 'wake'
+            )
+          ''');
+        }
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');
@@ -164,6 +237,61 @@ class AppDatabase extends _$AppDatabase {
     return query.watchSingleOrNull().map((row) => row?.readTable(sleepLogs));
   }
 
+  Future<void> upsertWakeEnergyObservation({
+    required int dailyRecordId,
+    required int energy,
+    required DateTime recordedAt,
+  }) async {
+    const energyLevels = ['drained', 'flat', 'okay', 'good', 'energised'];
+
+    if (energy < 1 || energy > 5) {
+      throw ArgumentError.value(energy, 'energy', 'Must be between 1 and 5.');
+    }
+
+    final existing =
+        await (select(energyLogs)..where(
+              (log) =>
+                  log.dailyRecordId.equals(dailyRecordId) &
+                  log.captureSource.equals('sleep_form') &
+                  log.context.equals('wake'),
+            ))
+            .getSingleOrNull();
+
+    final energyLevel = energyLevels[energy - 1];
+
+    if (existing == null) {
+      await into(energyLogs).insert(
+        EnergyLogsCompanion.insert(
+          dailyRecordId: dailyRecordId,
+          energyLevel: energyLevel,
+          recordedAt: recordedAt,
+          captureSource: const Value('sleep_form'),
+          context: const Value('wake'),
+        ),
+      );
+      return;
+    }
+
+    await (update(
+      energyLogs,
+    )..where((log) => log.id.equals(existing.id))).write(
+      EnergyLogsCompanion(
+        energyLevel: Value(energyLevel),
+        recordedAt: Value(recordedAt),
+      ),
+    );
+  }
+
+  Future<void> deleteWakeEnergyObservation(int dailyRecordId) async {
+    await (delete(energyLogs)..where(
+          (log) =>
+              log.dailyRecordId.equals(dailyRecordId) &
+              log.captureSource.equals('sleep_form') &
+              log.context.equals('wake'),
+        ))
+        .go();
+  }
+
   Future<void> saveSleepLog({
     required String dateKey,
     required DateTime bedtime,
@@ -209,28 +337,34 @@ class AppDatabase extends _$AppDatabase {
             updatedAt: Value(now),
           ),
         );
-
-        return;
+      } else {
+        await (update(
+          sleepLogs,
+        )..where((log) => log.id.equals(existing.id))).write(
+          SleepLogsCompanion(
+            bedtime: Value(bedtime),
+            wakeTime: Value(wakeTime),
+            sleepOnsetAdjustmentMinutes: Value(sleepLatencyMinutes),
+            sleepLatencySource: Value(sleepLatencySource),
+            awakeningCount: Value(awakeningCount),
+            awakeDuringNightMinutes: Value(awakeDuringNightMinutes),
+            calculatedDurationMinutes: Value(calculatedDurationMinutes),
+            sleepQuality: Value(sleepQuality),
+            energy: Value(morningEnergy),
+            notes: Value(
+              cleanedNotes == null || cleanedNotes.isEmpty
+                  ? null
+                  : cleanedNotes,
+            ),
+            updatedAt: Value(now),
+          ),
+        );
       }
 
-      await (update(
-        sleepLogs,
-      )..where((log) => log.id.equals(existing.id))).write(
-        SleepLogsCompanion(
-          bedtime: Value(bedtime),
-          wakeTime: Value(wakeTime),
-          sleepOnsetAdjustmentMinutes: Value(sleepLatencyMinutes),
-          sleepLatencySource: Value(sleepLatencySource),
-          awakeningCount: Value(awakeningCount),
-          awakeDuringNightMinutes: Value(awakeDuringNightMinutes),
-          calculatedDurationMinutes: Value(calculatedDurationMinutes),
-          sleepQuality: Value(sleepQuality),
-          energy: Value(morningEnergy),
-          notes: Value(
-            cleanedNotes == null || cleanedNotes.isEmpty ? null : cleanedNotes,
-          ),
-          updatedAt: Value(now),
-        ),
+      await upsertWakeEnergyObservation(
+        dailyRecordId: dailyRecord.id,
+        energy: morningEnergy,
+        recordedAt: wakeTime,
       );
     });
   }

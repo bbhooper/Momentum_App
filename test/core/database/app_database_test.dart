@@ -18,8 +18,8 @@ void main() {
   });
 
   group('AppDatabase', () {
-    test('uses schema version 7', () {
-      expect(database.schemaVersion, 7);
+    test('uses schema version 8', () {
+      expect(database.schemaVersion, 8);
     });
 
     test('creates a daily record for a new date', () async {
@@ -73,7 +73,7 @@ void main() {
       expect(record, isNull);
     });
 
-    test('saves a sleep log for a date', () async {
+    test('saves sleep energy as a canonical wake observation', () async {
       final bedtime = DateTime(2026, 7, 25, 22, 30);
       final wakeTime = DateTime(2026, 7, 26, 7);
 
@@ -92,6 +92,7 @@ void main() {
       );
 
       final sleepLog = await database.findSleepLogForDate('2026-07-26');
+      final energyLogs = await database.select(database.energyLogs).get();
 
       expect(sleepLog, isNotNull);
       expect(sleepLog!.bedtime, bedtime);
@@ -104,9 +105,14 @@ void main() {
       expect(sleepLog.sleepQuality, 4);
       expect(sleepLog.energy, 3);
       expect(sleepLog.notes, 'Remembered a vivid dream.');
+      expect(energyLogs, hasLength(1));
+      expect(energyLogs.single.energyLevel, 'okay');
+      expect(energyLogs.single.recordedAt, wakeTime);
+      expect(energyLogs.single.captureSource, 'sleep_form');
+      expect(energyLogs.single.context, 'wake');
     });
 
-    test('updates the existing sleep log for the same date', () async {
+    test('updates the existing sleep log and wake observation', () async {
       final bedtime = DateTime(2026, 7, 25, 22, 30);
       final wakeTime = DateTime(2026, 7, 26, 7);
 
@@ -137,9 +143,12 @@ void main() {
       );
 
       final logs = await database.select(database.sleepLogs).get();
+      final energyLogs = await database.select(database.energyLogs).get();
       final updated = await database.findSleepLogForDate('2026-07-26');
 
       expect(logs, hasLength(1));
+      expect(energyLogs, hasLength(1));
+      expect(energyLogs.single.energyLevel, 'flat');
       expect(updated, isNotNull);
       expect(updated!.awakeningCount, 1);
       expect(updated.awakeDuringNightMinutes, 20);

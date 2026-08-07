@@ -162,7 +162,7 @@ class _SelfCareTab extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Update this whenever your energy changes. Each check-in is saved automatically.',
+                'Check in whenever it is useful. Each response is saved automatically.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 14),
@@ -174,7 +174,7 @@ class _SelfCareTab extends ConsumerWidget {
               if (form.energyLogs.isNotEmpty) ...[
                 const SizedBox(height: 18),
                 Text(
-                  'Today’s changes',
+                  'Today’s check-ins',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 6),
@@ -198,39 +198,49 @@ class _EnergyHistoryTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final level = EnergyLevel.fromStorage(log.energyLevel);
     final controller = ref.read(careFormControllerProvider.notifier);
+    final isCareEntry = log.captureSource == 'care_page';
+    final sourceLabel = switch (log.captureSource) {
+      'sleep_form' => 'Wake-up check-in',
+      'notification' => 'Notification check-in',
+      _ => null,
+    };
+    final time = TimeOfDay.fromDateTime(log.recordedAt).format(context);
+
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
       title: Text(level?.label ?? log.energyLevel),
-      subtitle: Text(TimeOfDay.fromDateTime(log.recordedAt).format(context)),
-      trailing: PopupMenuButton<String>(
-        tooltip: 'Energy entry options',
-        onSelected: (action) async {
-          if (action == 'delete') {
-            await controller.deleteEnergy(log);
-            return;
-          }
-          final picked = await showTimePicker(
-            context: context,
-            initialTime: TimeOfDay.fromDateTime(log.recordedAt),
-          );
-          if (picked == null) return;
-          await controller.updateEnergyTime(
-            log,
-            DateTime(
-              log.recordedAt.year,
-              log.recordedAt.month,
-              log.recordedAt.day,
-              picked.hour,
-              picked.minute,
-            ),
-          );
-        },
-        itemBuilder: (_) => const [
-          PopupMenuItem(value: 'time', child: Text('Edit time')),
-          PopupMenuItem(value: 'delete', child: Text('Remove entry')),
-        ],
-      ),
+      subtitle: Text('$time${sourceLabel == null ? '' : ' · $sourceLabel'}'),
+      trailing: isCareEntry
+          ? PopupMenuButton<String>(
+              tooltip: 'Energy entry options',
+              onSelected: (action) async {
+                if (action == 'delete') {
+                  await controller.deleteEnergy(log);
+                  return;
+                }
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(log.recordedAt),
+                );
+                if (picked == null) return;
+                await controller.updateEnergyTime(
+                  log,
+                  DateTime(
+                    log.recordedAt.year,
+                    log.recordedAt.month,
+                    log.recordedAt.day,
+                    picked.hour,
+                    picked.minute,
+                  ),
+                );
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'time', child: Text('Edit time')),
+                PopupMenuItem(value: 'delete', child: Text('Remove entry')),
+              ],
+            )
+          : null,
     );
   }
 }
@@ -259,7 +269,7 @@ class _HomeCareTab extends ConsumerWidget {
                 )
               else ...[
                 Text(
-                  '${current.label} energy · ${_bandLabel(current.homeCareBand)} list',
+                  '${current.label} energy · ${_demandLabel(current.homeCareDemand)}-demand tasks',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 12),
@@ -299,7 +309,10 @@ class _HomeCareTab extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 for (final completion in form.completions)
-                  _CompletedTaskTile(completion: completion),
+                  _CompletedTaskTile(
+                    completion: completion,
+                    task: _findTask(completion.taskKey),
+                  ),
               ],
             ),
           ),
@@ -309,25 +322,26 @@ class _HomeCareTab extends ConsumerWidget {
     );
   }
 
-  String _bandLabel(String band) =>
-      '${band[0].toUpperCase()}${band.substring(1)}';
+  HomeCareTask? _findTask(String taskKey) {
+    for (final task in form.tasks) {
+      if (task.key == taskKey) return task;
+    }
+    return null;
+  }
+
+  String _demandLabel(String demand) =>
+      '${demand[0].toUpperCase()}${demand.substring(1)}';
 }
 
 class _CompletedTaskTile extends ConsumerWidget {
-  const _CompletedTaskTile({required this.completion});
+  const _CompletedTaskTile({required this.completion, required this.task});
+
   final HomeCareCompletion completion;
+  final HomeCareTask? task;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final energy = EnergyLevel.fromStorage(completion.energyAtCompletion);
-    HomeCareTask? task;
-    for (final item in defaultHomeCareTasks) {
-      if (item.key == completion.taskKey) {
-        task = item;
-        break;
-      }
-    }
-    final matchedTask = task;
 
     return ListTile(
       dense: true,
@@ -338,14 +352,14 @@ class _CompletedTaskTile extends ConsumerWidget {
         '${TimeOfDay.fromDateTime(completion.completedAt).format(context)}'
         '${energy == null ? '' : ' · ${energy.label} energy'}',
       ),
-      trailing: matchedTask == null
+      trailing: task == null
           ? null
           : IconButton(
               tooltip: 'Undo completion',
               icon: const Icon(Icons.undo),
               onPressed: () => ref
                   .read(careFormControllerProvider.notifier)
-                  .setTaskCompleted(matchedTask, false),
+                  .setTaskCompleted(task!, false),
             ),
     );
   }

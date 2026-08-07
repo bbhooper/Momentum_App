@@ -86,64 +86,75 @@ class SleepRepository {
       awakeDuringNightMinutes: awakeDuringNightMinutes,
     );
 
-    final dailyRecord = await _database.ensureDailyRecord(dateKey);
+    return _database.transaction(() async {
+      final dailyRecord = await _database.ensureDailyRecord(dateKey);
 
-    final existingLog =
-        await (_database.select(_database.sleepLogs)
-              ..where((log) => log.dailyRecordId.equals(dailyRecord.id)))
-            .getSingleOrNull();
+      final existingLog =
+          await (_database.select(_database.sleepLogs)
+                ..where((log) => log.dailyRecordId.equals(dailyRecord.id)))
+              .getSingleOrNull();
 
-    final normalisedNotes = _normaliseNotes(notes);
-    final now = DateTime.now();
+      final normalisedNotes = _normaliseNotes(notes);
+      final now = DateTime.now();
+      late final SleepLog savedLog;
 
-    if (existingLog == null) {
-      final id = await _database
-          .into(_database.sleepLogs)
-          .insert(
-            SleepLogsCompanion.insert(
-              dailyRecordId: dailyRecord.id,
-              bedtime: bedtime,
-              wakeTime: wakeTime,
-              sleepOnsetAdjustmentMinutes: Value(sleepOnsetAdjustmentMinutes),
-              sleepLatencySource: Value(sleepLatencySource),
-              awakeningCount: Value(awakeningCount),
-              awakeDuringNightMinutes: Value(awakeDuringNightMinutes),
-              calculatedDurationMinutes: calculatedDurationMinutes,
-              manualDurationMinutes: Value(manualDurationMinutes),
-              sleepQuality: sleepQuality,
-              energy: energy,
-              notes: Value(normalisedNotes),
-              updatedAt: Value(now),
-            ),
-          );
+      if (existingLog == null) {
+        final id = await _database
+            .into(_database.sleepLogs)
+            .insert(
+              SleepLogsCompanion.insert(
+                dailyRecordId: dailyRecord.id,
+                bedtime: bedtime,
+                wakeTime: wakeTime,
+                sleepOnsetAdjustmentMinutes: Value(sleepOnsetAdjustmentMinutes),
+                sleepLatencySource: Value(sleepLatencySource),
+                awakeningCount: Value(awakeningCount),
+                awakeDuringNightMinutes: Value(awakeDuringNightMinutes),
+                calculatedDurationMinutes: calculatedDurationMinutes,
+                manualDurationMinutes: Value(manualDurationMinutes),
+                sleepQuality: sleepQuality,
+                energy: energy,
+                notes: Value(normalisedNotes),
+                updatedAt: Value(now),
+              ),
+            );
 
-      return (_database.select(
-        _database.sleepLogs,
-      )..where((log) => log.id.equals(id))).getSingle();
-    }
+        savedLog = await (_database.select(
+          _database.sleepLogs,
+        )..where((log) => log.id.equals(id))).getSingle();
+      } else {
+        await (_database.update(
+          _database.sleepLogs,
+        )..where((log) => log.id.equals(existingLog.id))).write(
+          SleepLogsCompanion(
+            bedtime: Value(bedtime),
+            wakeTime: Value(wakeTime),
+            sleepOnsetAdjustmentMinutes: Value(sleepOnsetAdjustmentMinutes),
+            sleepLatencySource: Value(sleepLatencySource),
+            awakeningCount: Value(awakeningCount),
+            awakeDuringNightMinutes: Value(awakeDuringNightMinutes),
+            calculatedDurationMinutes: Value(calculatedDurationMinutes),
+            manualDurationMinutes: Value(manualDurationMinutes),
+            sleepQuality: Value(sleepQuality),
+            energy: Value(energy),
+            notes: Value(normalisedNotes),
+            updatedAt: Value(now),
+          ),
+        );
 
-    await (_database.update(
-      _database.sleepLogs,
-    )..where((log) => log.id.equals(existingLog.id))).write(
-      SleepLogsCompanion(
-        bedtime: Value(bedtime),
-        wakeTime: Value(wakeTime),
-        sleepOnsetAdjustmentMinutes: Value(sleepOnsetAdjustmentMinutes),
-        sleepLatencySource: Value(sleepLatencySource),
-        awakeningCount: Value(awakeningCount),
-        awakeDuringNightMinutes: Value(awakeDuringNightMinutes),
-        calculatedDurationMinutes: Value(calculatedDurationMinutes),
-        manualDurationMinutes: Value(manualDurationMinutes),
-        sleepQuality: Value(sleepQuality),
-        energy: Value(energy),
-        notes: Value(normalisedNotes),
-        updatedAt: Value(now),
-      ),
-    );
+        savedLog = await (_database.select(
+          _database.sleepLogs,
+        )..where((log) => log.id.equals(existingLog.id))).getSingle();
+      }
 
-    return (_database.select(
-      _database.sleepLogs,
-    )..where((log) => log.id.equals(existingLog.id))).getSingle();
+      await _database.upsertWakeEnergyObservation(
+        dailyRecordId: dailyRecord.id,
+        energy: energy,
+        recordedAt: wakeTime,
+      );
+
+      return savedLog;
+    });
   }
 
   /// Returns the main sleep log for a Momentum date, if one exists.
@@ -194,11 +205,17 @@ class SleepRepository {
       return false;
     }
 
-    final deletedRows = await (_database.delete(
-      _database.sleepLogs,
-    )..where((log) => log.dailyRecordId.equals(dailyRecord.id))).go();
+    return _database.transaction(() async {
+      final deletedRows = await (_database.delete(
+        _database.sleepLogs,
+      )..where((log) => log.dailyRecordId.equals(dailyRecord.id))).go();
 
-    return deletedRows > 0;
+      if (deletedRows > 0) {
+        await _database.deleteWakeEnergyObservation(dailyRecord.id);
+      }
+
+      return deletedRows > 0;
+    });
   }
 
   void _validateScore(String name, int value) {

@@ -29,20 +29,21 @@ void main() {
     await database.close();
   });
 
-  test('latest energy controls the recommended task band', () async {
+  test('latest energy controls the recommended task demand', () async {
     await container.read(careFormControllerProvider.future);
     final controller = container.read(careFormControllerProvider.notifier);
 
     await controller.addEnergy(EnergyLevel.good);
     expect(
-      container.read(careFormControllerProvider).requireValue.homeCareBand,
-      'green',
+      container.read(careFormControllerProvider).requireValue.homeCareDemand,
+      'high',
     );
 
     await controller.addEnergy(EnergyLevel.flat);
     final form = container.read(careFormControllerProvider).requireValue;
-    expect(form.homeCareBand, 'red');
+    expect(form.homeCareDemand, 'low');
     expect(form.energyLogs, hasLength(2));
+    expect(form.visibleTasks, hasLength(3));
   });
 
   test('mood can save independently of energy', () async {

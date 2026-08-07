@@ -2562,6 +2562,30 @@ class $EnergyLogsTable extends EnergyLogs
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _captureSourceMeta = const VerificationMeta(
+    'captureSource',
+  );
+  @override
+  late final GeneratedColumn<String> captureSource = GeneratedColumn<String>(
+    'capture_source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('care_page'),
+  );
+  static const VerificationMeta _contextMeta = const VerificationMeta(
+    'context',
+  );
+  @override
+  late final GeneratedColumn<String> context = GeneratedColumn<String>(
+    'context',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('general'),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -2580,6 +2604,8 @@ class $EnergyLogsTable extends EnergyLogs
     dailyRecordId,
     energyLevel,
     recordedAt,
+    captureSource,
+    context,
     createdAt,
   ];
   @override
@@ -2627,6 +2653,21 @@ class $EnergyLogsTable extends EnergyLogs
     } else if (isInserting) {
       context.missing(_recordedAtMeta);
     }
+    if (data.containsKey('capture_source')) {
+      context.handle(
+        _captureSourceMeta,
+        captureSource.isAcceptableOrUnknown(
+          data['capture_source']!,
+          _captureSourceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('context')) {
+      context.handle(
+        _contextMeta,
+        this.context.isAcceptableOrUnknown(data['context']!, _contextMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -2658,6 +2699,14 @@ class $EnergyLogsTable extends EnergyLogs
         DriftSqlType.dateTime,
         data['${effectivePrefix}recorded_at'],
       )!,
+      captureSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}capture_source'],
+      )!,
+      context: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}context'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -2678,12 +2727,21 @@ class EnergyLog extends DataClass implements Insertable<EnergyLog> {
   /// drained, flat, okay, good, or energised.
   final String energyLevel;
   final DateTime recordedAt;
+
+  /// How the user supplied the observation.
+  /// Current/future examples: care_page, sleep_form, notification.
+  final String captureSource;
+
+  /// What the observation represents. Current values: general, wake.
+  final String context;
   final DateTime createdAt;
   const EnergyLog({
     required this.id,
     required this.dailyRecordId,
     required this.energyLevel,
     required this.recordedAt,
+    required this.captureSource,
+    required this.context,
     required this.createdAt,
   });
   @override
@@ -2693,6 +2751,8 @@ class EnergyLog extends DataClass implements Insertable<EnergyLog> {
     map['daily_record_id'] = Variable<int>(dailyRecordId);
     map['energy_level'] = Variable<String>(energyLevel);
     map['recorded_at'] = Variable<DateTime>(recordedAt);
+    map['capture_source'] = Variable<String>(captureSource);
+    map['context'] = Variable<String>(context);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -2703,6 +2763,8 @@ class EnergyLog extends DataClass implements Insertable<EnergyLog> {
       dailyRecordId: Value(dailyRecordId),
       energyLevel: Value(energyLevel),
       recordedAt: Value(recordedAt),
+      captureSource: Value(captureSource),
+      context: Value(context),
       createdAt: Value(createdAt),
     );
   }
@@ -2717,6 +2779,8 @@ class EnergyLog extends DataClass implements Insertable<EnergyLog> {
       dailyRecordId: serializer.fromJson<int>(json['dailyRecordId']),
       energyLevel: serializer.fromJson<String>(json['energyLevel']),
       recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      captureSource: serializer.fromJson<String>(json['captureSource']),
+      context: serializer.fromJson<String>(json['context']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -2728,6 +2792,8 @@ class EnergyLog extends DataClass implements Insertable<EnergyLog> {
       'dailyRecordId': serializer.toJson<int>(dailyRecordId),
       'energyLevel': serializer.toJson<String>(energyLevel),
       'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'captureSource': serializer.toJson<String>(captureSource),
+      'context': serializer.toJson<String>(context),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -2737,12 +2803,16 @@ class EnergyLog extends DataClass implements Insertable<EnergyLog> {
     int? dailyRecordId,
     String? energyLevel,
     DateTime? recordedAt,
+    String? captureSource,
+    String? context,
     DateTime? createdAt,
   }) => EnergyLog(
     id: id ?? this.id,
     dailyRecordId: dailyRecordId ?? this.dailyRecordId,
     energyLevel: energyLevel ?? this.energyLevel,
     recordedAt: recordedAt ?? this.recordedAt,
+    captureSource: captureSource ?? this.captureSource,
+    context: context ?? this.context,
     createdAt: createdAt ?? this.createdAt,
   );
   EnergyLog copyWithCompanion(EnergyLogsCompanion data) {
@@ -2757,6 +2827,10 @@ class EnergyLog extends DataClass implements Insertable<EnergyLog> {
       recordedAt: data.recordedAt.present
           ? data.recordedAt.value
           : this.recordedAt,
+      captureSource: data.captureSource.present
+          ? data.captureSource.value
+          : this.captureSource,
+      context: data.context.present ? data.context.value : this.context,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -2768,14 +2842,23 @@ class EnergyLog extends DataClass implements Insertable<EnergyLog> {
           ..write('dailyRecordId: $dailyRecordId, ')
           ..write('energyLevel: $energyLevel, ')
           ..write('recordedAt: $recordedAt, ')
+          ..write('captureSource: $captureSource, ')
+          ..write('context: $context, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, dailyRecordId, energyLevel, recordedAt, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    dailyRecordId,
+    energyLevel,
+    recordedAt,
+    captureSource,
+    context,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2784,6 +2867,8 @@ class EnergyLog extends DataClass implements Insertable<EnergyLog> {
           other.dailyRecordId == this.dailyRecordId &&
           other.energyLevel == this.energyLevel &&
           other.recordedAt == this.recordedAt &&
+          other.captureSource == this.captureSource &&
+          other.context == this.context &&
           other.createdAt == this.createdAt);
 }
 
@@ -2792,12 +2877,16 @@ class EnergyLogsCompanion extends UpdateCompanion<EnergyLog> {
   final Value<int> dailyRecordId;
   final Value<String> energyLevel;
   final Value<DateTime> recordedAt;
+  final Value<String> captureSource;
+  final Value<String> context;
   final Value<DateTime> createdAt;
   const EnergyLogsCompanion({
     this.id = const Value.absent(),
     this.dailyRecordId = const Value.absent(),
     this.energyLevel = const Value.absent(),
     this.recordedAt = const Value.absent(),
+    this.captureSource = const Value.absent(),
+    this.context = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   EnergyLogsCompanion.insert({
@@ -2805,6 +2894,8 @@ class EnergyLogsCompanion extends UpdateCompanion<EnergyLog> {
     required int dailyRecordId,
     required String energyLevel,
     required DateTime recordedAt,
+    this.captureSource = const Value.absent(),
+    this.context = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : dailyRecordId = Value(dailyRecordId),
        energyLevel = Value(energyLevel),
@@ -2814,6 +2905,8 @@ class EnergyLogsCompanion extends UpdateCompanion<EnergyLog> {
     Expression<int>? dailyRecordId,
     Expression<String>? energyLevel,
     Expression<DateTime>? recordedAt,
+    Expression<String>? captureSource,
+    Expression<String>? context,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -2821,6 +2914,8 @@ class EnergyLogsCompanion extends UpdateCompanion<EnergyLog> {
       if (dailyRecordId != null) 'daily_record_id': dailyRecordId,
       if (energyLevel != null) 'energy_level': energyLevel,
       if (recordedAt != null) 'recorded_at': recordedAt,
+      if (captureSource != null) 'capture_source': captureSource,
+      if (context != null) 'context': context,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -2830,6 +2925,8 @@ class EnergyLogsCompanion extends UpdateCompanion<EnergyLog> {
     Value<int>? dailyRecordId,
     Value<String>? energyLevel,
     Value<DateTime>? recordedAt,
+    Value<String>? captureSource,
+    Value<String>? context,
     Value<DateTime>? createdAt,
   }) {
     return EnergyLogsCompanion(
@@ -2837,6 +2934,8 @@ class EnergyLogsCompanion extends UpdateCompanion<EnergyLog> {
       dailyRecordId: dailyRecordId ?? this.dailyRecordId,
       energyLevel: energyLevel ?? this.energyLevel,
       recordedAt: recordedAt ?? this.recordedAt,
+      captureSource: captureSource ?? this.captureSource,
+      context: context ?? this.context,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -2856,6 +2955,12 @@ class EnergyLogsCompanion extends UpdateCompanion<EnergyLog> {
     if (recordedAt.present) {
       map['recorded_at'] = Variable<DateTime>(recordedAt.value);
     }
+    if (captureSource.present) {
+      map['capture_source'] = Variable<String>(captureSource.value);
+    }
+    if (context.present) {
+      map['context'] = Variable<String>(context.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2869,7 +2974,963 @@ class EnergyLogsCompanion extends UpdateCompanion<EnergyLog> {
           ..write('dailyRecordId: $dailyRecordId, ')
           ..write('energyLevel: $energyLevel, ')
           ..write('recordedAt: $recordedAt, ')
+          ..write('captureSource: $captureSource, ')
+          ..write('context: $context, ')
           ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HomeCareTasksTable extends HomeCareTasks
+    with TableInfo<$HomeCareTasksTable, HomeCareTaskRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HomeCareTasksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _stableKeyMeta = const VerificationMeta(
+    'stableKey',
+  );
+  @override
+  late final GeneratedColumn<String> stableKey = GeneratedColumn<String>(
+    'stable_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userDemandLevelMeta = const VerificationMeta(
+    'userDemandLevel',
+  );
+  @override
+  late final GeneratedColumn<String> userDemandLevel = GeneratedColumn<String>(
+    'user_demand_level',
+    aliasedName,
+    false,
+    check: () => const CustomExpression<bool>(
+      "user_demand_level IN ('low', 'medium', 'high')",
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
+    'isDefault',
+  );
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+    'is_default',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_default" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: DateTime.now,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: DateTime.now,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    stableKey,
+    title,
+    userDemandLevel,
+    sortOrder,
+    isActive,
+    isDefault,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'home_care_tasks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HomeCareTaskRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('stable_key')) {
+      context.handle(
+        _stableKeyMeta,
+        stableKey.isAcceptableOrUnknown(data['stable_key']!, _stableKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stableKeyMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('user_demand_level')) {
+      context.handle(
+        _userDemandLevelMeta,
+        userDemandLevel.isAcceptableOrUnknown(
+          data['user_demand_level']!,
+          _userDemandLevelMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_userDemandLevelMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(
+        _isDefaultMeta,
+        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HomeCareTaskRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HomeCareTaskRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      stableKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stable_key'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      userDemandLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_demand_level'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+      isDefault: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_default'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HomeCareTasksTable createAlias(String alias) {
+    return $HomeCareTasksTable(attachedDatabase, alias);
+  }
+}
+
+class HomeCareTaskRecord extends DataClass
+    implements Insertable<HomeCareTaskRecord> {
+  final int id;
+
+  /// Stable identity. This must not change when the task is renamed.
+  final String stableKey;
+  final String title;
+
+  /// User-assigned expected demand: low, medium, or high.
+  final String userDemandLevel;
+  final int sortOrder;
+
+  /// Tasks are deactivated rather than deleted so history remains intact.
+  final bool isActive;
+  final bool isDefault;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const HomeCareTaskRecord({
+    required this.id,
+    required this.stableKey,
+    required this.title,
+    required this.userDemandLevel,
+    required this.sortOrder,
+    required this.isActive,
+    required this.isDefault,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['stable_key'] = Variable<String>(stableKey);
+    map['title'] = Variable<String>(title);
+    map['user_demand_level'] = Variable<String>(userDemandLevel);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['is_active'] = Variable<bool>(isActive);
+    map['is_default'] = Variable<bool>(isDefault);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  HomeCareTasksCompanion toCompanion(bool nullToAbsent) {
+    return HomeCareTasksCompanion(
+      id: Value(id),
+      stableKey: Value(stableKey),
+      title: Value(title),
+      userDemandLevel: Value(userDemandLevel),
+      sortOrder: Value(sortOrder),
+      isActive: Value(isActive),
+      isDefault: Value(isDefault),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory HomeCareTaskRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HomeCareTaskRecord(
+      id: serializer.fromJson<int>(json['id']),
+      stableKey: serializer.fromJson<String>(json['stableKey']),
+      title: serializer.fromJson<String>(json['title']),
+      userDemandLevel: serializer.fromJson<String>(json['userDemandLevel']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'stableKey': serializer.toJson<String>(stableKey),
+      'title': serializer.toJson<String>(title),
+      'userDemandLevel': serializer.toJson<String>(userDemandLevel),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'isActive': serializer.toJson<bool>(isActive),
+      'isDefault': serializer.toJson<bool>(isDefault),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  HomeCareTaskRecord copyWith({
+    int? id,
+    String? stableKey,
+    String? title,
+    String? userDemandLevel,
+    int? sortOrder,
+    bool? isActive,
+    bool? isDefault,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => HomeCareTaskRecord(
+    id: id ?? this.id,
+    stableKey: stableKey ?? this.stableKey,
+    title: title ?? this.title,
+    userDemandLevel: userDemandLevel ?? this.userDemandLevel,
+    sortOrder: sortOrder ?? this.sortOrder,
+    isActive: isActive ?? this.isActive,
+    isDefault: isDefault ?? this.isDefault,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  HomeCareTaskRecord copyWithCompanion(HomeCareTasksCompanion data) {
+    return HomeCareTaskRecord(
+      id: data.id.present ? data.id.value : this.id,
+      stableKey: data.stableKey.present ? data.stableKey.value : this.stableKey,
+      title: data.title.present ? data.title.value : this.title,
+      userDemandLevel: data.userDemandLevel.present
+          ? data.userDemandLevel.value
+          : this.userDemandLevel,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomeCareTaskRecord(')
+          ..write('id: $id, ')
+          ..write('stableKey: $stableKey, ')
+          ..write('title: $title, ')
+          ..write('userDemandLevel: $userDemandLevel, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('isActive: $isActive, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    stableKey,
+    title,
+    userDemandLevel,
+    sortOrder,
+    isActive,
+    isDefault,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HomeCareTaskRecord &&
+          other.id == this.id &&
+          other.stableKey == this.stableKey &&
+          other.title == this.title &&
+          other.userDemandLevel == this.userDemandLevel &&
+          other.sortOrder == this.sortOrder &&
+          other.isActive == this.isActive &&
+          other.isDefault == this.isDefault &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class HomeCareTasksCompanion extends UpdateCompanion<HomeCareTaskRecord> {
+  final Value<int> id;
+  final Value<String> stableKey;
+  final Value<String> title;
+  final Value<String> userDemandLevel;
+  final Value<int> sortOrder;
+  final Value<bool> isActive;
+  final Value<bool> isDefault;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const HomeCareTasksCompanion({
+    this.id = const Value.absent(),
+    this.stableKey = const Value.absent(),
+    this.title = const Value.absent(),
+    this.userDemandLevel = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  HomeCareTasksCompanion.insert({
+    this.id = const Value.absent(),
+    required String stableKey,
+    required String title,
+    required String userDemandLevel,
+    this.sortOrder = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : stableKey = Value(stableKey),
+       title = Value(title),
+       userDemandLevel = Value(userDemandLevel);
+  static Insertable<HomeCareTaskRecord> custom({
+    Expression<int>? id,
+    Expression<String>? stableKey,
+    Expression<String>? title,
+    Expression<String>? userDemandLevel,
+    Expression<int>? sortOrder,
+    Expression<bool>? isActive,
+    Expression<bool>? isDefault,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (stableKey != null) 'stable_key': stableKey,
+      if (title != null) 'title': title,
+      if (userDemandLevel != null) 'user_demand_level': userDemandLevel,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (isActive != null) 'is_active': isActive,
+      if (isDefault != null) 'is_default': isDefault,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  HomeCareTasksCompanion copyWith({
+    Value<int>? id,
+    Value<String>? stableKey,
+    Value<String>? title,
+    Value<String>? userDemandLevel,
+    Value<int>? sortOrder,
+    Value<bool>? isActive,
+    Value<bool>? isDefault,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return HomeCareTasksCompanion(
+      id: id ?? this.id,
+      stableKey: stableKey ?? this.stableKey,
+      title: title ?? this.title,
+      userDemandLevel: userDemandLevel ?? this.userDemandLevel,
+      sortOrder: sortOrder ?? this.sortOrder,
+      isActive: isActive ?? this.isActive,
+      isDefault: isDefault ?? this.isDefault,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (stableKey.present) {
+      map['stable_key'] = Variable<String>(stableKey.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (userDemandLevel.present) {
+      map['user_demand_level'] = Variable<String>(userDemandLevel.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomeCareTasksCompanion(')
+          ..write('id: $id, ')
+          ..write('stableKey: $stableKey, ')
+          ..write('title: $title, ')
+          ..write('userDemandLevel: $userDemandLevel, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('isActive: $isActive, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HomeCareTaskDemandHistoryTable extends HomeCareTaskDemandHistory
+    with
+        TableInfo<
+          $HomeCareTaskDemandHistoryTable,
+          HomeCareTaskDemandHistoryRecord
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HomeCareTaskDemandHistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _homeCareTaskIdMeta = const VerificationMeta(
+    'homeCareTaskId',
+  );
+  @override
+  late final GeneratedColumn<int> homeCareTaskId = GeneratedColumn<int>(
+    'home_care_task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES home_care_tasks (id) ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _demandLevelMeta = const VerificationMeta(
+    'demandLevel',
+  );
+  @override
+  late final GeneratedColumn<String> demandLevel = GeneratedColumn<String>(
+    'demand_level',
+    aliasedName,
+    false,
+    check: () => const CustomExpression<bool>(
+      "demand_level IN ('low', 'medium', 'high')",
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _effectiveFromMeta = const VerificationMeta(
+    'effectiveFrom',
+  );
+  @override
+  late final GeneratedColumn<DateTime> effectiveFrom =
+      GeneratedColumn<DateTime>(
+        'effective_from',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _effectiveToMeta = const VerificationMeta(
+    'effectiveTo',
+  );
+  @override
+  late final GeneratedColumn<DateTime> effectiveTo = GeneratedColumn<DateTime>(
+    'effective_to',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    homeCareTaskId,
+    demandLevel,
+    effectiveFrom,
+    effectiveTo,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'home_care_task_demand_history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HomeCareTaskDemandHistoryRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('home_care_task_id')) {
+      context.handle(
+        _homeCareTaskIdMeta,
+        homeCareTaskId.isAcceptableOrUnknown(
+          data['home_care_task_id']!,
+          _homeCareTaskIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_homeCareTaskIdMeta);
+    }
+    if (data.containsKey('demand_level')) {
+      context.handle(
+        _demandLevelMeta,
+        demandLevel.isAcceptableOrUnknown(
+          data['demand_level']!,
+          _demandLevelMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_demandLevelMeta);
+    }
+    if (data.containsKey('effective_from')) {
+      context.handle(
+        _effectiveFromMeta,
+        effectiveFrom.isAcceptableOrUnknown(
+          data['effective_from']!,
+          _effectiveFromMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_effectiveFromMeta);
+    }
+    if (data.containsKey('effective_to')) {
+      context.handle(
+        _effectiveToMeta,
+        effectiveTo.isAcceptableOrUnknown(
+          data['effective_to']!,
+          _effectiveToMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HomeCareTaskDemandHistoryRecord map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HomeCareTaskDemandHistoryRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      homeCareTaskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}home_care_task_id'],
+      )!,
+      demandLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}demand_level'],
+      )!,
+      effectiveFrom: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}effective_from'],
+      )!,
+      effectiveTo: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}effective_to'],
+      ),
+    );
+  }
+
+  @override
+  $HomeCareTaskDemandHistoryTable createAlias(String alias) {
+    return $HomeCareTaskDemandHistoryTable(attachedDatabase, alias);
+  }
+}
+
+class HomeCareTaskDemandHistoryRecord extends DataClass
+    implements Insertable<HomeCareTaskDemandHistoryRecord> {
+  final int id;
+  final int homeCareTaskId;
+
+  /// low, medium, or high.
+  final String demandLevel;
+  final DateTime effectiveFrom;
+  final DateTime? effectiveTo;
+  const HomeCareTaskDemandHistoryRecord({
+    required this.id,
+    required this.homeCareTaskId,
+    required this.demandLevel,
+    required this.effectiveFrom,
+    this.effectiveTo,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['home_care_task_id'] = Variable<int>(homeCareTaskId);
+    map['demand_level'] = Variable<String>(demandLevel);
+    map['effective_from'] = Variable<DateTime>(effectiveFrom);
+    if (!nullToAbsent || effectiveTo != null) {
+      map['effective_to'] = Variable<DateTime>(effectiveTo);
+    }
+    return map;
+  }
+
+  HomeCareTaskDemandHistoryCompanion toCompanion(bool nullToAbsent) {
+    return HomeCareTaskDemandHistoryCompanion(
+      id: Value(id),
+      homeCareTaskId: Value(homeCareTaskId),
+      demandLevel: Value(demandLevel),
+      effectiveFrom: Value(effectiveFrom),
+      effectiveTo: effectiveTo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(effectiveTo),
+    );
+  }
+
+  factory HomeCareTaskDemandHistoryRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HomeCareTaskDemandHistoryRecord(
+      id: serializer.fromJson<int>(json['id']),
+      homeCareTaskId: serializer.fromJson<int>(json['homeCareTaskId']),
+      demandLevel: serializer.fromJson<String>(json['demandLevel']),
+      effectiveFrom: serializer.fromJson<DateTime>(json['effectiveFrom']),
+      effectiveTo: serializer.fromJson<DateTime?>(json['effectiveTo']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'homeCareTaskId': serializer.toJson<int>(homeCareTaskId),
+      'demandLevel': serializer.toJson<String>(demandLevel),
+      'effectiveFrom': serializer.toJson<DateTime>(effectiveFrom),
+      'effectiveTo': serializer.toJson<DateTime?>(effectiveTo),
+    };
+  }
+
+  HomeCareTaskDemandHistoryRecord copyWith({
+    int? id,
+    int? homeCareTaskId,
+    String? demandLevel,
+    DateTime? effectiveFrom,
+    Value<DateTime?> effectiveTo = const Value.absent(),
+  }) => HomeCareTaskDemandHistoryRecord(
+    id: id ?? this.id,
+    homeCareTaskId: homeCareTaskId ?? this.homeCareTaskId,
+    demandLevel: demandLevel ?? this.demandLevel,
+    effectiveFrom: effectiveFrom ?? this.effectiveFrom,
+    effectiveTo: effectiveTo.present ? effectiveTo.value : this.effectiveTo,
+  );
+  HomeCareTaskDemandHistoryRecord copyWithCompanion(
+    HomeCareTaskDemandHistoryCompanion data,
+  ) {
+    return HomeCareTaskDemandHistoryRecord(
+      id: data.id.present ? data.id.value : this.id,
+      homeCareTaskId: data.homeCareTaskId.present
+          ? data.homeCareTaskId.value
+          : this.homeCareTaskId,
+      demandLevel: data.demandLevel.present
+          ? data.demandLevel.value
+          : this.demandLevel,
+      effectiveFrom: data.effectiveFrom.present
+          ? data.effectiveFrom.value
+          : this.effectiveFrom,
+      effectiveTo: data.effectiveTo.present
+          ? data.effectiveTo.value
+          : this.effectiveTo,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomeCareTaskDemandHistoryRecord(')
+          ..write('id: $id, ')
+          ..write('homeCareTaskId: $homeCareTaskId, ')
+          ..write('demandLevel: $demandLevel, ')
+          ..write('effectiveFrom: $effectiveFrom, ')
+          ..write('effectiveTo: $effectiveTo')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, homeCareTaskId, demandLevel, effectiveFrom, effectiveTo);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HomeCareTaskDemandHistoryRecord &&
+          other.id == this.id &&
+          other.homeCareTaskId == this.homeCareTaskId &&
+          other.demandLevel == this.demandLevel &&
+          other.effectiveFrom == this.effectiveFrom &&
+          other.effectiveTo == this.effectiveTo);
+}
+
+class HomeCareTaskDemandHistoryCompanion
+    extends UpdateCompanion<HomeCareTaskDemandHistoryRecord> {
+  final Value<int> id;
+  final Value<int> homeCareTaskId;
+  final Value<String> demandLevel;
+  final Value<DateTime> effectiveFrom;
+  final Value<DateTime?> effectiveTo;
+  const HomeCareTaskDemandHistoryCompanion({
+    this.id = const Value.absent(),
+    this.homeCareTaskId = const Value.absent(),
+    this.demandLevel = const Value.absent(),
+    this.effectiveFrom = const Value.absent(),
+    this.effectiveTo = const Value.absent(),
+  });
+  HomeCareTaskDemandHistoryCompanion.insert({
+    this.id = const Value.absent(),
+    required int homeCareTaskId,
+    required String demandLevel,
+    required DateTime effectiveFrom,
+    this.effectiveTo = const Value.absent(),
+  }) : homeCareTaskId = Value(homeCareTaskId),
+       demandLevel = Value(demandLevel),
+       effectiveFrom = Value(effectiveFrom);
+  static Insertable<HomeCareTaskDemandHistoryRecord> custom({
+    Expression<int>? id,
+    Expression<int>? homeCareTaskId,
+    Expression<String>? demandLevel,
+    Expression<DateTime>? effectiveFrom,
+    Expression<DateTime>? effectiveTo,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (homeCareTaskId != null) 'home_care_task_id': homeCareTaskId,
+      if (demandLevel != null) 'demand_level': demandLevel,
+      if (effectiveFrom != null) 'effective_from': effectiveFrom,
+      if (effectiveTo != null) 'effective_to': effectiveTo,
+    });
+  }
+
+  HomeCareTaskDemandHistoryCompanion copyWith({
+    Value<int>? id,
+    Value<int>? homeCareTaskId,
+    Value<String>? demandLevel,
+    Value<DateTime>? effectiveFrom,
+    Value<DateTime?>? effectiveTo,
+  }) {
+    return HomeCareTaskDemandHistoryCompanion(
+      id: id ?? this.id,
+      homeCareTaskId: homeCareTaskId ?? this.homeCareTaskId,
+      demandLevel: demandLevel ?? this.demandLevel,
+      effectiveFrom: effectiveFrom ?? this.effectiveFrom,
+      effectiveTo: effectiveTo ?? this.effectiveTo,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (homeCareTaskId.present) {
+      map['home_care_task_id'] = Variable<int>(homeCareTaskId.value);
+    }
+    if (demandLevel.present) {
+      map['demand_level'] = Variable<String>(demandLevel.value);
+    }
+    if (effectiveFrom.present) {
+      map['effective_from'] = Variable<DateTime>(effectiveFrom.value);
+    }
+    if (effectiveTo.present) {
+      map['effective_to'] = Variable<DateTime>(effectiveTo.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomeCareTaskDemandHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('homeCareTaskId: $homeCareTaskId, ')
+          ..write('demandLevel: $demandLevel, ')
+          ..write('effectiveFrom: $effectiveFrom, ')
+          ..write('effectiveTo: $effectiveTo')
           ..write(')'))
         .toString();
   }
@@ -2908,6 +3969,18 @@ class $HomeCareCompletionsTable extends HomeCareCompletions
       'REFERENCES daily_records (id) ON DELETE CASCADE',
     ),
   );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<int> taskId = GeneratedColumn<int>(
+    'task_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES home_care_tasks (id) ON DELETE RESTRICT',
+    ),
+  );
   static const VerificationMeta _taskKeyMeta = const VerificationMeta(
     'taskKey',
   );
@@ -2941,6 +4014,17 @@ class $HomeCareCompletionsTable extends HomeCareCompletions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _userDemandAtCompletionMeta =
+      const VerificationMeta('userDemandAtCompletion');
+  @override
+  late final GeneratedColumn<String> userDemandAtCompletion =
+      GeneratedColumn<String>(
+        'user_demand_at_completion',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _energyAtCompletionMeta =
       const VerificationMeta('energyAtCompletion');
   @override
@@ -2968,9 +4052,11 @@ class $HomeCareCompletionsTable extends HomeCareCompletions
   List<GeneratedColumn> get $columns => [
     id,
     dailyRecordId,
+    taskId,
     taskKey,
     taskTitle,
     energyLevel,
+    userDemandAtCompletion,
     energyAtCompletion,
     completedAt,
   ];
@@ -3000,6 +4086,12 @@ class $HomeCareCompletionsTable extends HomeCareCompletions
     } else if (isInserting) {
       context.missing(_dailyRecordIdMeta);
     }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    }
     if (data.containsKey('task_key')) {
       context.handle(
         _taskKeyMeta,
@@ -3026,6 +4118,15 @@ class $HomeCareCompletionsTable extends HomeCareCompletions
       );
     } else if (isInserting) {
       context.missing(_energyLevelMeta);
+    }
+    if (data.containsKey('user_demand_at_completion')) {
+      context.handle(
+        _userDemandAtCompletionMeta,
+        userDemandAtCompletion.isAcceptableOrUnknown(
+          data['user_demand_at_completion']!,
+          _userDemandAtCompletionMeta,
+        ),
+      );
     }
     if (data.containsKey('energy_at_completion')) {
       context.handle(
@@ -3066,6 +4167,10 @@ class $HomeCareCompletionsTable extends HomeCareCompletions
         DriftSqlType.int,
         data['${effectivePrefix}daily_record_id'],
       )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}task_id'],
+      ),
       taskKey: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}task_key'],
@@ -3078,6 +4183,10 @@ class $HomeCareCompletionsTable extends HomeCareCompletions
         DriftSqlType.string,
         data['${effectivePrefix}energy_level'],
       )!,
+      userDemandAtCompletion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_demand_at_completion'],
+      ),
       energyAtCompletion: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}energy_at_completion'],
@@ -3099,21 +4208,33 @@ class HomeCareCompletion extends DataClass
     implements Insertable<HomeCareCompletion> {
   final int id;
   final int dailyRecordId;
+
+  /// Nullable so pre-v8 completion rows can migrate without inventing an ID.
+  final int? taskId;
+
+  /// Historical stable-key snapshot.
   final String taskKey;
+
+  /// Historical title snapshot so future renames do not alter old records.
   final String taskTitle;
 
-  /// The Red/Yellow/Green recommendation list this task belongs to.
+  /// Legacy Red/Yellow/Green band snapshot retained for v7 compatibility.
   final String energyLevel;
 
-  /// The user's current five-level energy when the task was completed.
+  /// The user's expected task demand at the moment of completion.
+  final String? userDemandAtCompletion;
+
+  /// The user's reported energy when the task was completed.
   final String? energyAtCompletion;
   final DateTime completedAt;
   const HomeCareCompletion({
     required this.id,
     required this.dailyRecordId,
+    this.taskId,
     required this.taskKey,
     required this.taskTitle,
     required this.energyLevel,
+    this.userDemandAtCompletion,
     this.energyAtCompletion,
     required this.completedAt,
   });
@@ -3122,9 +4243,17 @@ class HomeCareCompletion extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['daily_record_id'] = Variable<int>(dailyRecordId);
+    if (!nullToAbsent || taskId != null) {
+      map['task_id'] = Variable<int>(taskId);
+    }
     map['task_key'] = Variable<String>(taskKey);
     map['task_title'] = Variable<String>(taskTitle);
     map['energy_level'] = Variable<String>(energyLevel);
+    if (!nullToAbsent || userDemandAtCompletion != null) {
+      map['user_demand_at_completion'] = Variable<String>(
+        userDemandAtCompletion,
+      );
+    }
     if (!nullToAbsent || energyAtCompletion != null) {
       map['energy_at_completion'] = Variable<String>(energyAtCompletion);
     }
@@ -3136,9 +4265,15 @@ class HomeCareCompletion extends DataClass
     return HomeCareCompletionsCompanion(
       id: Value(id),
       dailyRecordId: Value(dailyRecordId),
+      taskId: taskId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taskId),
       taskKey: Value(taskKey),
       taskTitle: Value(taskTitle),
       energyLevel: Value(energyLevel),
+      userDemandAtCompletion: userDemandAtCompletion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userDemandAtCompletion),
       energyAtCompletion: energyAtCompletion == null && nullToAbsent
           ? const Value.absent()
           : Value(energyAtCompletion),
@@ -3154,9 +4289,13 @@ class HomeCareCompletion extends DataClass
     return HomeCareCompletion(
       id: serializer.fromJson<int>(json['id']),
       dailyRecordId: serializer.fromJson<int>(json['dailyRecordId']),
+      taskId: serializer.fromJson<int?>(json['taskId']),
       taskKey: serializer.fromJson<String>(json['taskKey']),
       taskTitle: serializer.fromJson<String>(json['taskTitle']),
       energyLevel: serializer.fromJson<String>(json['energyLevel']),
+      userDemandAtCompletion: serializer.fromJson<String?>(
+        json['userDemandAtCompletion'],
+      ),
       energyAtCompletion: serializer.fromJson<String?>(
         json['energyAtCompletion'],
       ),
@@ -3169,9 +4308,13 @@ class HomeCareCompletion extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'dailyRecordId': serializer.toJson<int>(dailyRecordId),
+      'taskId': serializer.toJson<int?>(taskId),
       'taskKey': serializer.toJson<String>(taskKey),
       'taskTitle': serializer.toJson<String>(taskTitle),
       'energyLevel': serializer.toJson<String>(energyLevel),
+      'userDemandAtCompletion': serializer.toJson<String?>(
+        userDemandAtCompletion,
+      ),
       'energyAtCompletion': serializer.toJson<String?>(energyAtCompletion),
       'completedAt': serializer.toJson<DateTime>(completedAt),
     };
@@ -3180,17 +4323,23 @@ class HomeCareCompletion extends DataClass
   HomeCareCompletion copyWith({
     int? id,
     int? dailyRecordId,
+    Value<int?> taskId = const Value.absent(),
     String? taskKey,
     String? taskTitle,
     String? energyLevel,
+    Value<String?> userDemandAtCompletion = const Value.absent(),
     Value<String?> energyAtCompletion = const Value.absent(),
     DateTime? completedAt,
   }) => HomeCareCompletion(
     id: id ?? this.id,
     dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+    taskId: taskId.present ? taskId.value : this.taskId,
     taskKey: taskKey ?? this.taskKey,
     taskTitle: taskTitle ?? this.taskTitle,
     energyLevel: energyLevel ?? this.energyLevel,
+    userDemandAtCompletion: userDemandAtCompletion.present
+        ? userDemandAtCompletion.value
+        : this.userDemandAtCompletion,
     energyAtCompletion: energyAtCompletion.present
         ? energyAtCompletion.value
         : this.energyAtCompletion,
@@ -3202,11 +4351,15 @@ class HomeCareCompletion extends DataClass
       dailyRecordId: data.dailyRecordId.present
           ? data.dailyRecordId.value
           : this.dailyRecordId,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
       taskKey: data.taskKey.present ? data.taskKey.value : this.taskKey,
       taskTitle: data.taskTitle.present ? data.taskTitle.value : this.taskTitle,
       energyLevel: data.energyLevel.present
           ? data.energyLevel.value
           : this.energyLevel,
+      userDemandAtCompletion: data.userDemandAtCompletion.present
+          ? data.userDemandAtCompletion.value
+          : this.userDemandAtCompletion,
       energyAtCompletion: data.energyAtCompletion.present
           ? data.energyAtCompletion.value
           : this.energyAtCompletion,
@@ -3221,9 +4374,11 @@ class HomeCareCompletion extends DataClass
     return (StringBuffer('HomeCareCompletion(')
           ..write('id: $id, ')
           ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('taskId: $taskId, ')
           ..write('taskKey: $taskKey, ')
           ..write('taskTitle: $taskTitle, ')
           ..write('energyLevel: $energyLevel, ')
+          ..write('userDemandAtCompletion: $userDemandAtCompletion, ')
           ..write('energyAtCompletion: $energyAtCompletion, ')
           ..write('completedAt: $completedAt')
           ..write(')'))
@@ -3234,9 +4389,11 @@ class HomeCareCompletion extends DataClass
   int get hashCode => Object.hash(
     id,
     dailyRecordId,
+    taskId,
     taskKey,
     taskTitle,
     energyLevel,
+    userDemandAtCompletion,
     energyAtCompletion,
     completedAt,
   );
@@ -3246,9 +4403,11 @@ class HomeCareCompletion extends DataClass
       (other is HomeCareCompletion &&
           other.id == this.id &&
           other.dailyRecordId == this.dailyRecordId &&
+          other.taskId == this.taskId &&
           other.taskKey == this.taskKey &&
           other.taskTitle == this.taskTitle &&
           other.energyLevel == this.energyLevel &&
+          other.userDemandAtCompletion == this.userDemandAtCompletion &&
           other.energyAtCompletion == this.energyAtCompletion &&
           other.completedAt == this.completedAt);
 }
@@ -3256,26 +4415,32 @@ class HomeCareCompletion extends DataClass
 class HomeCareCompletionsCompanion extends UpdateCompanion<HomeCareCompletion> {
   final Value<int> id;
   final Value<int> dailyRecordId;
+  final Value<int?> taskId;
   final Value<String> taskKey;
   final Value<String> taskTitle;
   final Value<String> energyLevel;
+  final Value<String?> userDemandAtCompletion;
   final Value<String?> energyAtCompletion;
   final Value<DateTime> completedAt;
   const HomeCareCompletionsCompanion({
     this.id = const Value.absent(),
     this.dailyRecordId = const Value.absent(),
+    this.taskId = const Value.absent(),
     this.taskKey = const Value.absent(),
     this.taskTitle = const Value.absent(),
     this.energyLevel = const Value.absent(),
+    this.userDemandAtCompletion = const Value.absent(),
     this.energyAtCompletion = const Value.absent(),
     this.completedAt = const Value.absent(),
   });
   HomeCareCompletionsCompanion.insert({
     this.id = const Value.absent(),
     required int dailyRecordId,
+    this.taskId = const Value.absent(),
     required String taskKey,
     required String taskTitle,
     required String energyLevel,
+    this.userDemandAtCompletion = const Value.absent(),
     this.energyAtCompletion = const Value.absent(),
     this.completedAt = const Value.absent(),
   }) : dailyRecordId = Value(dailyRecordId),
@@ -3285,18 +4450,23 @@ class HomeCareCompletionsCompanion extends UpdateCompanion<HomeCareCompletion> {
   static Insertable<HomeCareCompletion> custom({
     Expression<int>? id,
     Expression<int>? dailyRecordId,
+    Expression<int>? taskId,
     Expression<String>? taskKey,
     Expression<String>? taskTitle,
     Expression<String>? energyLevel,
+    Expression<String>? userDemandAtCompletion,
     Expression<String>? energyAtCompletion,
     Expression<DateTime>? completedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (dailyRecordId != null) 'daily_record_id': dailyRecordId,
+      if (taskId != null) 'task_id': taskId,
       if (taskKey != null) 'task_key': taskKey,
       if (taskTitle != null) 'task_title': taskTitle,
       if (energyLevel != null) 'energy_level': energyLevel,
+      if (userDemandAtCompletion != null)
+        'user_demand_at_completion': userDemandAtCompletion,
       if (energyAtCompletion != null)
         'energy_at_completion': energyAtCompletion,
       if (completedAt != null) 'completed_at': completedAt,
@@ -3306,18 +4476,23 @@ class HomeCareCompletionsCompanion extends UpdateCompanion<HomeCareCompletion> {
   HomeCareCompletionsCompanion copyWith({
     Value<int>? id,
     Value<int>? dailyRecordId,
+    Value<int?>? taskId,
     Value<String>? taskKey,
     Value<String>? taskTitle,
     Value<String>? energyLevel,
+    Value<String?>? userDemandAtCompletion,
     Value<String?>? energyAtCompletion,
     Value<DateTime>? completedAt,
   }) {
     return HomeCareCompletionsCompanion(
       id: id ?? this.id,
       dailyRecordId: dailyRecordId ?? this.dailyRecordId,
+      taskId: taskId ?? this.taskId,
       taskKey: taskKey ?? this.taskKey,
       taskTitle: taskTitle ?? this.taskTitle,
       energyLevel: energyLevel ?? this.energyLevel,
+      userDemandAtCompletion:
+          userDemandAtCompletion ?? this.userDemandAtCompletion,
       energyAtCompletion: energyAtCompletion ?? this.energyAtCompletion,
       completedAt: completedAt ?? this.completedAt,
     );
@@ -3332,6 +4507,9 @@ class HomeCareCompletionsCompanion extends UpdateCompanion<HomeCareCompletion> {
     if (dailyRecordId.present) {
       map['daily_record_id'] = Variable<int>(dailyRecordId.value);
     }
+    if (taskId.present) {
+      map['task_id'] = Variable<int>(taskId.value);
+    }
     if (taskKey.present) {
       map['task_key'] = Variable<String>(taskKey.value);
     }
@@ -3340,6 +4518,11 @@ class HomeCareCompletionsCompanion extends UpdateCompanion<HomeCareCompletion> {
     }
     if (energyLevel.present) {
       map['energy_level'] = Variable<String>(energyLevel.value);
+    }
+    if (userDemandAtCompletion.present) {
+      map['user_demand_at_completion'] = Variable<String>(
+        userDemandAtCompletion.value,
+      );
     }
     if (energyAtCompletion.present) {
       map['energy_at_completion'] = Variable<String>(energyAtCompletion.value);
@@ -3355,9 +4538,11 @@ class HomeCareCompletionsCompanion extends UpdateCompanion<HomeCareCompletion> {
     return (StringBuffer('HomeCareCompletionsCompanion(')
           ..write('id: $id, ')
           ..write('dailyRecordId: $dailyRecordId, ')
+          ..write('taskId: $taskId, ')
           ..write('taskKey: $taskKey, ')
           ..write('taskTitle: $taskTitle, ')
           ..write('energyLevel: $energyLevel, ')
+          ..write('userDemandAtCompletion: $userDemandAtCompletion, ')
           ..write('energyAtCompletion: $energyAtCompletion, ')
           ..write('completedAt: $completedAt')
           ..write(')'))
@@ -3373,6 +4558,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $NapLogsTable napLogs = $NapLogsTable(this);
   late final $CareLogsTable careLogs = $CareLogsTable(this);
   late final $EnergyLogsTable energyLogs = $EnergyLogsTable(this);
+  late final $HomeCareTasksTable homeCareTasks = $HomeCareTasksTable(this);
+  late final $HomeCareTaskDemandHistoryTable homeCareTaskDemandHistory =
+      $HomeCareTaskDemandHistoryTable(this);
   late final $HomeCareCompletionsTable homeCareCompletions =
       $HomeCareCompletionsTable(this);
   @override
@@ -3385,6 +4573,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     napLogs,
     careLogs,
     energyLogs,
+    homeCareTasks,
+    homeCareTaskDemandHistory,
     homeCareCompletions,
   ];
   @override
@@ -5441,6 +6631,8 @@ typedef $$EnergyLogsTableCreateCompanionBuilder =
       required int dailyRecordId,
       required String energyLevel,
       required DateTime recordedAt,
+      Value<String> captureSource,
+      Value<String> context,
       Value<DateTime> createdAt,
     });
 typedef $$EnergyLogsTableUpdateCompanionBuilder =
@@ -5449,6 +6641,8 @@ typedef $$EnergyLogsTableUpdateCompanionBuilder =
       Value<int> dailyRecordId,
       Value<String> energyLevel,
       Value<DateTime> recordedAt,
+      Value<String> captureSource,
+      Value<String> context,
       Value<DateTime> createdAt,
     });
 
@@ -5496,6 +6690,16 @@ class $$EnergyLogsTableFilterComposer
 
   ColumnFilters<DateTime> get recordedAt => $composableBuilder(
     column: $table.recordedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get captureSource => $composableBuilder(
+    column: $table.captureSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get context => $composableBuilder(
+    column: $table.context,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5552,6 +6756,16 @@ class $$EnergyLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get captureSource => $composableBuilder(
+    column: $table.captureSource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get context => $composableBuilder(
+    column: $table.context,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -5602,6 +6816,14 @@ class $$EnergyLogsTableAnnotationComposer
     column: $table.recordedAt,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get captureSource => $composableBuilder(
+    column: $table.captureSource,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get context =>
+      $composableBuilder(column: $table.context, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -5662,12 +6884,16 @@ class $$EnergyLogsTableTableManager
                 Value<int> dailyRecordId = const Value.absent(),
                 Value<String> energyLevel = const Value.absent(),
                 Value<DateTime> recordedAt = const Value.absent(),
+                Value<String> captureSource = const Value.absent(),
+                Value<String> context = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => EnergyLogsCompanion(
                 id: id,
                 dailyRecordId: dailyRecordId,
                 energyLevel: energyLevel,
                 recordedAt: recordedAt,
+                captureSource: captureSource,
+                context: context,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -5676,12 +6902,16 @@ class $$EnergyLogsTableTableManager
                 required int dailyRecordId,
                 required String energyLevel,
                 required DateTime recordedAt,
+                Value<String> captureSource = const Value.absent(),
+                Value<String> context = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => EnergyLogsCompanion.insert(
                 id: id,
                 dailyRecordId: dailyRecordId,
                 energyLevel: energyLevel,
                 recordedAt: recordedAt,
+                captureSource: captureSource,
+                context: context,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
@@ -5751,13 +6981,865 @@ typedef $$EnergyLogsTableProcessedTableManager =
       EnergyLog,
       PrefetchHooks Function({bool dailyRecordId})
     >;
+typedef $$HomeCareTasksTableCreateCompanionBuilder =
+    HomeCareTasksCompanion Function({
+      Value<int> id,
+      required String stableKey,
+      required String title,
+      required String userDemandLevel,
+      Value<int> sortOrder,
+      Value<bool> isActive,
+      Value<bool> isDefault,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$HomeCareTasksTableUpdateCompanionBuilder =
+    HomeCareTasksCompanion Function({
+      Value<int> id,
+      Value<String> stableKey,
+      Value<String> title,
+      Value<String> userDemandLevel,
+      Value<int> sortOrder,
+      Value<bool> isActive,
+      Value<bool> isDefault,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$HomeCareTasksTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $HomeCareTasksTable, HomeCareTaskRecord> {
+  $$HomeCareTasksTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<
+    $HomeCareTaskDemandHistoryTable,
+    List<HomeCareTaskDemandHistoryRecord>
+  >
+  _homeCareTaskDemandHistoryRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.homeCareTaskDemandHistory,
+    aliasName:
+        'home_care_tasks__id__home_care_task_demand_history__home_care_task_id',
+  );
+
+  $$HomeCareTaskDemandHistoryTableProcessedTableManager
+  get homeCareTaskDemandHistoryRefs {
+    final manager = $$HomeCareTaskDemandHistoryTableTableManager(
+      $_db,
+      $_db.homeCareTaskDemandHistory,
+    ).filter((f) => f.homeCareTaskId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _homeCareTaskDemandHistoryRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $HomeCareCompletionsTable,
+    List<HomeCareCompletion>
+  >
+  _homeCareCompletionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.homeCareCompletions,
+        aliasName: 'home_care_tasks__id__home_care_completions__task_id',
+      );
+
+  $$HomeCareCompletionsTableProcessedTableManager get homeCareCompletionsRefs {
+    final manager = $$HomeCareCompletionsTableTableManager(
+      $_db,
+      $_db.homeCareCompletions,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _homeCareCompletionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$HomeCareTasksTableFilterComposer
+    extends Composer<_$AppDatabase, $HomeCareTasksTable> {
+  $$HomeCareTasksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stableKey => $composableBuilder(
+    column: $table.stableKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userDemandLevel => $composableBuilder(
+    column: $table.userDemandLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> homeCareTaskDemandHistoryRefs(
+    Expression<bool> Function($$HomeCareTaskDemandHistoryTableFilterComposer f)
+    f,
+  ) {
+    final $$HomeCareTaskDemandHistoryTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.homeCareTaskDemandHistory,
+          getReferencedColumn: (t) => t.homeCareTaskId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$HomeCareTaskDemandHistoryTableFilterComposer(
+                $db: $db,
+                $table: $db.homeCareTaskDemandHistory,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> homeCareCompletionsRefs(
+    Expression<bool> Function($$HomeCareCompletionsTableFilterComposer f) f,
+  ) {
+    final $$HomeCareCompletionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.homeCareCompletions,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HomeCareCompletionsTableFilterComposer(
+            $db: $db,
+            $table: $db.homeCareCompletions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$HomeCareTasksTableOrderingComposer
+    extends Composer<_$AppDatabase, $HomeCareTasksTable> {
+  $$HomeCareTasksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stableKey => $composableBuilder(
+    column: $table.stableKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userDemandLevel => $composableBuilder(
+    column: $table.userDemandLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HomeCareTasksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HomeCareTasksTable> {
+  $$HomeCareTasksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get stableKey =>
+      $composableBuilder(column: $table.stableKey, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get userDemandLevel => $composableBuilder(
+    column: $table.userDemandLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> homeCareTaskDemandHistoryRefs<T extends Object>(
+    Expression<T> Function($$HomeCareTaskDemandHistoryTableAnnotationComposer a)
+    f,
+  ) {
+    final $$HomeCareTaskDemandHistoryTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.homeCareTaskDemandHistory,
+          getReferencedColumn: (t) => t.homeCareTaskId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$HomeCareTaskDemandHistoryTableAnnotationComposer(
+                $db: $db,
+                $table: $db.homeCareTaskDemandHistory,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> homeCareCompletionsRefs<T extends Object>(
+    Expression<T> Function($$HomeCareCompletionsTableAnnotationComposer a) f,
+  ) {
+    final $$HomeCareCompletionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.homeCareCompletions,
+          getReferencedColumn: (t) => t.taskId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$HomeCareCompletionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.homeCareCompletions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$HomeCareTasksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HomeCareTasksTable,
+          HomeCareTaskRecord,
+          $$HomeCareTasksTableFilterComposer,
+          $$HomeCareTasksTableOrderingComposer,
+          $$HomeCareTasksTableAnnotationComposer,
+          $$HomeCareTasksTableCreateCompanionBuilder,
+          $$HomeCareTasksTableUpdateCompanionBuilder,
+          (HomeCareTaskRecord, $$HomeCareTasksTableReferences),
+          HomeCareTaskRecord,
+          PrefetchHooks Function({
+            bool homeCareTaskDemandHistoryRefs,
+            bool homeCareCompletionsRefs,
+          })
+        > {
+  $$HomeCareTasksTableTableManager(_$AppDatabase db, $HomeCareTasksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HomeCareTasksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HomeCareTasksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HomeCareTasksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> stableKey = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> userDemandLevel = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => HomeCareTasksCompanion(
+                id: id,
+                stableKey: stableKey,
+                title: title,
+                userDemandLevel: userDemandLevel,
+                sortOrder: sortOrder,
+                isActive: isActive,
+                isDefault: isDefault,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String stableKey,
+                required String title,
+                required String userDemandLevel,
+                Value<int> sortOrder = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => HomeCareTasksCompanion.insert(
+                id: id,
+                stableKey: stableKey,
+                title: title,
+                userDemandLevel: userDemandLevel,
+                sortOrder: sortOrder,
+                isActive: isActive,
+                isDefault: isDefault,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$HomeCareTasksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                homeCareTaskDemandHistoryRefs = false,
+                homeCareCompletionsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (homeCareTaskDemandHistoryRefs)
+                      db.homeCareTaskDemandHistory,
+                    if (homeCareCompletionsRefs) db.homeCareCompletions,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (homeCareTaskDemandHistoryRefs)
+                        await $_getPrefetchedData<
+                          HomeCareTaskRecord,
+                          $HomeCareTasksTable,
+                          HomeCareTaskDemandHistoryRecord
+                        >(
+                          currentTable: table,
+                          referencedTable: $$HomeCareTasksTableReferences
+                              ._homeCareTaskDemandHistoryRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$HomeCareTasksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).homeCareTaskDemandHistoryRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.homeCareTaskId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (homeCareCompletionsRefs)
+                        await $_getPrefetchedData<
+                          HomeCareTaskRecord,
+                          $HomeCareTasksTable,
+                          HomeCareCompletion
+                        >(
+                          currentTable: table,
+                          referencedTable: $$HomeCareTasksTableReferences
+                              ._homeCareCompletionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$HomeCareTasksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).homeCareCompletionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.taskId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$HomeCareTasksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HomeCareTasksTable,
+      HomeCareTaskRecord,
+      $$HomeCareTasksTableFilterComposer,
+      $$HomeCareTasksTableOrderingComposer,
+      $$HomeCareTasksTableAnnotationComposer,
+      $$HomeCareTasksTableCreateCompanionBuilder,
+      $$HomeCareTasksTableUpdateCompanionBuilder,
+      (HomeCareTaskRecord, $$HomeCareTasksTableReferences),
+      HomeCareTaskRecord,
+      PrefetchHooks Function({
+        bool homeCareTaskDemandHistoryRefs,
+        bool homeCareCompletionsRefs,
+      })
+    >;
+typedef $$HomeCareTaskDemandHistoryTableCreateCompanionBuilder =
+    HomeCareTaskDemandHistoryCompanion Function({
+      Value<int> id,
+      required int homeCareTaskId,
+      required String demandLevel,
+      required DateTime effectiveFrom,
+      Value<DateTime?> effectiveTo,
+    });
+typedef $$HomeCareTaskDemandHistoryTableUpdateCompanionBuilder =
+    HomeCareTaskDemandHistoryCompanion Function({
+      Value<int> id,
+      Value<int> homeCareTaskId,
+      Value<String> demandLevel,
+      Value<DateTime> effectiveFrom,
+      Value<DateTime?> effectiveTo,
+    });
+
+final class $$HomeCareTaskDemandHistoryTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $HomeCareTaskDemandHistoryTable,
+          HomeCareTaskDemandHistoryRecord
+        > {
+  $$HomeCareTaskDemandHistoryTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $HomeCareTasksTable _homeCareTaskIdTable(_$AppDatabase db) =>
+      db.homeCareTasks.createAlias(
+        'home_care_task_demand_history__home_care_task_id__home_care_tasks__id',
+      );
+
+  $$HomeCareTasksTableProcessedTableManager get homeCareTaskId {
+    final $_column = $_itemColumn<int>('home_care_task_id')!;
+
+    final manager = $$HomeCareTasksTableTableManager(
+      $_db,
+      $_db.homeCareTasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_homeCareTaskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$HomeCareTaskDemandHistoryTableFilterComposer
+    extends Composer<_$AppDatabase, $HomeCareTaskDemandHistoryTable> {
+  $$HomeCareTaskDemandHistoryTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get demandLevel => $composableBuilder(
+    column: $table.demandLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get effectiveFrom => $composableBuilder(
+    column: $table.effectiveFrom,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get effectiveTo => $composableBuilder(
+    column: $table.effectiveTo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$HomeCareTasksTableFilterComposer get homeCareTaskId {
+    final $$HomeCareTasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.homeCareTaskId,
+      referencedTable: $db.homeCareTasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HomeCareTasksTableFilterComposer(
+            $db: $db,
+            $table: $db.homeCareTasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HomeCareTaskDemandHistoryTableOrderingComposer
+    extends Composer<_$AppDatabase, $HomeCareTaskDemandHistoryTable> {
+  $$HomeCareTaskDemandHistoryTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get demandLevel => $composableBuilder(
+    column: $table.demandLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get effectiveFrom => $composableBuilder(
+    column: $table.effectiveFrom,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get effectiveTo => $composableBuilder(
+    column: $table.effectiveTo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$HomeCareTasksTableOrderingComposer get homeCareTaskId {
+    final $$HomeCareTasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.homeCareTaskId,
+      referencedTable: $db.homeCareTasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HomeCareTasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.homeCareTasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HomeCareTaskDemandHistoryTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HomeCareTaskDemandHistoryTable> {
+  $$HomeCareTaskDemandHistoryTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get demandLevel => $composableBuilder(
+    column: $table.demandLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get effectiveFrom => $composableBuilder(
+    column: $table.effectiveFrom,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get effectiveTo => $composableBuilder(
+    column: $table.effectiveTo,
+    builder: (column) => column,
+  );
+
+  $$HomeCareTasksTableAnnotationComposer get homeCareTaskId {
+    final $$HomeCareTasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.homeCareTaskId,
+      referencedTable: $db.homeCareTasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HomeCareTasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.homeCareTasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HomeCareTaskDemandHistoryTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HomeCareTaskDemandHistoryTable,
+          HomeCareTaskDemandHistoryRecord,
+          $$HomeCareTaskDemandHistoryTableFilterComposer,
+          $$HomeCareTaskDemandHistoryTableOrderingComposer,
+          $$HomeCareTaskDemandHistoryTableAnnotationComposer,
+          $$HomeCareTaskDemandHistoryTableCreateCompanionBuilder,
+          $$HomeCareTaskDemandHistoryTableUpdateCompanionBuilder,
+          (
+            HomeCareTaskDemandHistoryRecord,
+            $$HomeCareTaskDemandHistoryTableReferences,
+          ),
+          HomeCareTaskDemandHistoryRecord,
+          PrefetchHooks Function({bool homeCareTaskId})
+        > {
+  $$HomeCareTaskDemandHistoryTableTableManager(
+    _$AppDatabase db,
+    $HomeCareTaskDemandHistoryTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HomeCareTaskDemandHistoryTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$HomeCareTaskDemandHistoryTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$HomeCareTaskDemandHistoryTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> homeCareTaskId = const Value.absent(),
+                Value<String> demandLevel = const Value.absent(),
+                Value<DateTime> effectiveFrom = const Value.absent(),
+                Value<DateTime?> effectiveTo = const Value.absent(),
+              }) => HomeCareTaskDemandHistoryCompanion(
+                id: id,
+                homeCareTaskId: homeCareTaskId,
+                demandLevel: demandLevel,
+                effectiveFrom: effectiveFrom,
+                effectiveTo: effectiveTo,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int homeCareTaskId,
+                required String demandLevel,
+                required DateTime effectiveFrom,
+                Value<DateTime?> effectiveTo = const Value.absent(),
+              }) => HomeCareTaskDemandHistoryCompanion.insert(
+                id: id,
+                homeCareTaskId: homeCareTaskId,
+                demandLevel: demandLevel,
+                effectiveFrom: effectiveFrom,
+                effectiveTo: effectiveTo,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$HomeCareTaskDemandHistoryTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({homeCareTaskId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (homeCareTaskId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.homeCareTaskId,
+                                referencedTable:
+                                    $$HomeCareTaskDemandHistoryTableReferences
+                                        ._homeCareTaskIdTable(db),
+                                referencedColumn:
+                                    $$HomeCareTaskDemandHistoryTableReferences
+                                        ._homeCareTaskIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$HomeCareTaskDemandHistoryTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HomeCareTaskDemandHistoryTable,
+      HomeCareTaskDemandHistoryRecord,
+      $$HomeCareTaskDemandHistoryTableFilterComposer,
+      $$HomeCareTaskDemandHistoryTableOrderingComposer,
+      $$HomeCareTaskDemandHistoryTableAnnotationComposer,
+      $$HomeCareTaskDemandHistoryTableCreateCompanionBuilder,
+      $$HomeCareTaskDemandHistoryTableUpdateCompanionBuilder,
+      (
+        HomeCareTaskDemandHistoryRecord,
+        $$HomeCareTaskDemandHistoryTableReferences,
+      ),
+      HomeCareTaskDemandHistoryRecord,
+      PrefetchHooks Function({bool homeCareTaskId})
+    >;
 typedef $$HomeCareCompletionsTableCreateCompanionBuilder =
     HomeCareCompletionsCompanion Function({
       Value<int> id,
       required int dailyRecordId,
+      Value<int?> taskId,
       required String taskKey,
       required String taskTitle,
       required String energyLevel,
+      Value<String?> userDemandAtCompletion,
       Value<String?> energyAtCompletion,
       Value<DateTime> completedAt,
     });
@@ -5765,9 +7847,11 @@ typedef $$HomeCareCompletionsTableUpdateCompanionBuilder =
     HomeCareCompletionsCompanion Function({
       Value<int> id,
       Value<int> dailyRecordId,
+      Value<int?> taskId,
       Value<String> taskKey,
       Value<String> taskTitle,
       Value<String> energyLevel,
+      Value<String?> userDemandAtCompletion,
       Value<String?> energyAtCompletion,
       Value<DateTime> completedAt,
     });
@@ -5797,6 +7881,23 @@ final class $$HomeCareCompletionsTableReferences
       $_db.dailyRecords,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_dailyRecordIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $HomeCareTasksTable _taskIdTable(_$AppDatabase db) => db.homeCareTasks
+      .createAlias('home_care_completions__task_id__home_care_tasks__id');
+
+  $$HomeCareTasksTableProcessedTableManager? get taskId {
+    final $_column = $_itemColumn<int>('task_id');
+    if ($_column == null) return null;
+    final manager = $$HomeCareTasksTableTableManager(
+      $_db,
+      $_db.homeCareTasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -5833,6 +7934,11 @@ class $$HomeCareCompletionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get userDemandAtCompletion => $composableBuilder(
+    column: $table.userDemandAtCompletion,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get energyAtCompletion => $composableBuilder(
     column: $table.energyAtCompletion,
     builder: (column) => ColumnFilters(column),
@@ -5857,6 +7963,29 @@ class $$HomeCareCompletionsTableFilterComposer
           }) => $$DailyRecordsTableFilterComposer(
             $db: $db,
             $table: $db.dailyRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HomeCareTasksTableFilterComposer get taskId {
+    final $$HomeCareTasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.homeCareTasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HomeCareTasksTableFilterComposer(
+            $db: $db,
+            $table: $db.homeCareTasks,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5896,6 +8025,11 @@ class $$HomeCareCompletionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get userDemandAtCompletion => $composableBuilder(
+    column: $table.userDemandAtCompletion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get energyAtCompletion => $composableBuilder(
     column: $table.energyAtCompletion,
     builder: (column) => ColumnOrderings(column),
@@ -5928,6 +8062,29 @@ class $$HomeCareCompletionsTableOrderingComposer
     );
     return composer;
   }
+
+  $$HomeCareTasksTableOrderingComposer get taskId {
+    final $$HomeCareTasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.homeCareTasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HomeCareTasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.homeCareTasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$HomeCareCompletionsTableAnnotationComposer
@@ -5950,6 +8107,11 @@ class $$HomeCareCompletionsTableAnnotationComposer
 
   GeneratedColumn<String> get energyLevel => $composableBuilder(
     column: $table.energyLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get userDemandAtCompletion => $composableBuilder(
+    column: $table.userDemandAtCompletion,
     builder: (column) => column,
   );
 
@@ -5985,6 +8147,29 @@ class $$HomeCareCompletionsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$HomeCareTasksTableAnnotationComposer get taskId {
+    final $$HomeCareTasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.homeCareTasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HomeCareTasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.homeCareTasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$HomeCareCompletionsTableTableManager
@@ -6000,7 +8185,7 @@ class $$HomeCareCompletionsTableTableManager
           $$HomeCareCompletionsTableUpdateCompanionBuilder,
           (HomeCareCompletion, $$HomeCareCompletionsTableReferences),
           HomeCareCompletion,
-          PrefetchHooks Function({bool dailyRecordId})
+          PrefetchHooks Function({bool dailyRecordId, bool taskId})
         > {
   $$HomeCareCompletionsTableTableManager(
     _$AppDatabase db,
@@ -6025,17 +8210,21 @@ class $$HomeCareCompletionsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<int> dailyRecordId = const Value.absent(),
+                Value<int?> taskId = const Value.absent(),
                 Value<String> taskKey = const Value.absent(),
                 Value<String> taskTitle = const Value.absent(),
                 Value<String> energyLevel = const Value.absent(),
+                Value<String?> userDemandAtCompletion = const Value.absent(),
                 Value<String?> energyAtCompletion = const Value.absent(),
                 Value<DateTime> completedAt = const Value.absent(),
               }) => HomeCareCompletionsCompanion(
                 id: id,
                 dailyRecordId: dailyRecordId,
+                taskId: taskId,
                 taskKey: taskKey,
                 taskTitle: taskTitle,
                 energyLevel: energyLevel,
+                userDemandAtCompletion: userDemandAtCompletion,
                 energyAtCompletion: energyAtCompletion,
                 completedAt: completedAt,
               ),
@@ -6043,17 +8232,21 @@ class $$HomeCareCompletionsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required int dailyRecordId,
+                Value<int?> taskId = const Value.absent(),
                 required String taskKey,
                 required String taskTitle,
                 required String energyLevel,
+                Value<String?> userDemandAtCompletion = const Value.absent(),
                 Value<String?> energyAtCompletion = const Value.absent(),
                 Value<DateTime> completedAt = const Value.absent(),
               }) => HomeCareCompletionsCompanion.insert(
                 id: id,
                 dailyRecordId: dailyRecordId,
+                taskId: taskId,
                 taskKey: taskKey,
                 taskTitle: taskTitle,
                 energyLevel: energyLevel,
+                userDemandAtCompletion: userDemandAtCompletion,
                 energyAtCompletion: energyAtCompletion,
                 completedAt: completedAt,
               ),
@@ -6065,7 +8258,7 @@ class $$HomeCareCompletionsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({dailyRecordId = false}) {
+          prefetchHooksCallback: ({dailyRecordId = false, taskId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -6100,6 +8293,21 @@ class $$HomeCareCompletionsTableTableManager
                               )
                               as T;
                     }
+                    if (taskId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.taskId,
+                                referencedTable:
+                                    $$HomeCareCompletionsTableReferences
+                                        ._taskIdTable(db),
+                                referencedColumn:
+                                    $$HomeCareCompletionsTableReferences
+                                        ._taskIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
 
                     return state;
                   },
@@ -6124,7 +8332,7 @@ typedef $$HomeCareCompletionsTableProcessedTableManager =
       $$HomeCareCompletionsTableUpdateCompanionBuilder,
       (HomeCareCompletion, $$HomeCareCompletionsTableReferences),
       HomeCareCompletion,
-      PrefetchHooks Function({bool dailyRecordId})
+      PrefetchHooks Function({bool dailyRecordId, bool taskId})
     >;
 
 class $AppDatabaseManager {
@@ -6140,6 +8348,13 @@ class $AppDatabaseManager {
       $$CareLogsTableTableManager(_db, _db.careLogs);
   $$EnergyLogsTableTableManager get energyLogs =>
       $$EnergyLogsTableTableManager(_db, _db.energyLogs);
+  $$HomeCareTasksTableTableManager get homeCareTasks =>
+      $$HomeCareTasksTableTableManager(_db, _db.homeCareTasks);
+  $$HomeCareTaskDemandHistoryTableTableManager get homeCareTaskDemandHistory =>
+      $$HomeCareTaskDemandHistoryTableTableManager(
+        _db,
+        _db.homeCareTaskDemandHistory,
+      );
   $$HomeCareCompletionsTableTableManager get homeCareCompletions =>
       $$HomeCareCompletionsTableTableManager(_db, _db.homeCareCompletions);
 }

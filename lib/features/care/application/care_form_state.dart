@@ -9,6 +9,7 @@ class CareFormState {
     this.moodScore,
     this.moodNotes = '',
     this.energyLogs = const [],
+    this.tasks = const [],
     this.completions = const [],
     this.hasSavedMood = false,
     this.isSaving = false,
@@ -20,6 +21,7 @@ class CareFormState {
     required LocalDate date,
     CareLog? log,
     List<EnergyLog> energyLogs = const [],
+    List<HomeCareTask> tasks = const [],
     List<HomeCareCompletion> completions = const [],
   }) {
     return CareFormState(
@@ -27,6 +29,7 @@ class CareFormState {
       moodScore: log?.moodScore,
       moodNotes: log?.moodNotes ?? '',
       energyLogs: energyLogs,
+      tasks: tasks,
       completions: completions,
       hasSavedMood: log != null,
     );
@@ -36,6 +39,7 @@ class CareFormState {
   final int? moodScore;
   final String moodNotes;
   final List<EnergyLog> energyLogs;
+  final List<HomeCareTask> tasks;
   final List<HomeCareCompletion> completions;
   final bool hasSavedMood;
   final bool isSaving;
@@ -46,11 +50,11 @@ class CareFormState {
   EnergyLevel? get currentEnergy => energyLogs.isEmpty
       ? null
       : EnergyLevel.fromStorage(energyLogs.last.energyLevel);
-  String? get homeCareBand => currentEnergy?.homeCareBand;
+  String? get homeCareDemand => currentEnergy?.homeCareDemand;
   Set<String> get completedTaskKeys =>
       completions.map((item) => item.taskKey).toSet();
-  List<HomeCareTask> get visibleTasks => defaultHomeCareTasks
-      .where((task) => task.energyLevel == homeCareBand)
+  List<HomeCareTask> get visibleTasks => tasks
+      .where((task) => task.userDemandLevel == homeCareDemand)
       .toList(growable: false);
   int get completedVisibleTaskCount =>
       visibleTasks.where((task) => completedTaskKeys.contains(task.key)).length;
@@ -59,6 +63,7 @@ class CareFormState {
     Object? moodScore = _unset,
     String? moodNotes,
     List<EnergyLog>? energyLogs,
+    List<HomeCareTask>? tasks,
     List<HomeCareCompletion>? completions,
     bool? hasSavedMood,
     bool? isSaving,
@@ -72,6 +77,7 @@ class CareFormState {
           : moodScore as int?,
       moodNotes: moodNotes ?? this.moodNotes,
       energyLogs: energyLogs ?? this.energyLogs,
+      tasks: tasks ?? this.tasks,
       completions: completions ?? this.completions,
       hasSavedMood: hasSavedMood ?? this.hasSavedMood,
       isSaving: isSaving ?? this.isSaving,

@@ -18,13 +18,15 @@ class CareFormController extends AsyncNotifier<CareFormState> {
     final results = await Future.wait([
       _repository.findCareLog(date.dateKey),
       _repository.getEnergyLogs(date.dateKey),
+      _repository.getHomeCareTasks(),
       _repository.getCompletions(date.dateKey),
     ]);
     return CareFormState.fromData(
       date: date,
       log: results[0] as CareLog?,
       energyLogs: results[1] as List<EnergyLog>,
-      completions: results[2] as List<HomeCareCompletion>,
+      tasks: results[2] as List<HomeCareTask>,
+      completions: results[3] as List<HomeCareCompletion>,
     );
   }
 
@@ -55,7 +57,7 @@ class CareFormController extends AsyncNotifier<CareFormState> {
 
   Future<void> updateEnergyTime(EnergyLog log, DateTime recordedAt) async {
     final form = state.value;
-    if (form == null || form.isBusy) return;
+    if (form == null || form.isBusy || log.captureSource != 'care_page') return;
     await _repository.updateEnergyLogTime(log.id, recordedAt);
     final updated = [
       for (final item in form.energyLogs)
@@ -66,7 +68,7 @@ class CareFormController extends AsyncNotifier<CareFormState> {
 
   Future<void> deleteEnergy(EnergyLog log) async {
     final form = state.value;
-    if (form == null || form.isBusy) return;
+    if (form == null || form.isBusy || log.captureSource != 'care_page') return;
     await _repository.deleteEnergyLog(log.id);
     state = AsyncData(
       form.copyWith(

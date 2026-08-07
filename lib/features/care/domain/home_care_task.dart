@@ -1,59 +1,108 @@
 class HomeCareTask {
   const HomeCareTask({
+    required this.id,
     required this.key,
     required this.title,
-    required this.energyLevel,
+    required this.userDemandLevel,
+    required this.sortOrder,
+    required this.isDefault,
+  });
+
+  final int id;
+
+  /// Stable identity independent of title.
+  final String key;
+
+  final String title;
+
+  /// User-assigned expected demand: low, medium, or high.
+  final String userDemandLevel;
+
+  final int sortOrder;
+  final bool isDefault;
+
+  /// Retained while the v7 completion band's historical field still exists.
+  String get legacyBand {
+    switch (userDemandLevel) {
+      case 'low':
+        return 'red';
+      case 'medium':
+        return 'yellow';
+      case 'high':
+        return 'green';
+      default:
+        return 'yellow';
+    }
+  }
+}
+
+class HomeCareTaskSeed {
+  const HomeCareTaskSeed({
+    required this.key,
+    required this.title,
+    required this.userDemandLevel,
+    required this.sortOrder,
   });
 
   final String key;
   final String title;
-  final String energyLevel;
+  final String userDemandLevel;
+  final int sortOrder;
 }
 
-const defaultHomeCareTasks = <HomeCareTask>[
-  HomeCareTask(
+const defaultHomeCareTaskSeeds = <HomeCareTaskSeed>[
+  HomeCareTaskSeed(
     key: 'red_water',
     title: 'Refill your water',
-    energyLevel: 'red',
+    userDemandLevel: 'low',
+    sortOrder: 10,
   ),
-  HomeCareTask(
+  HomeCareTaskSeed(
     key: 'red_dishes',
     title: 'Take dishes to the kitchen',
-    energyLevel: 'red',
+    userDemandLevel: 'low',
+    sortOrder: 20,
   ),
-  HomeCareTask(
+  HomeCareTaskSeed(
     key: 'red_surface',
     title: 'Clear one small surface',
-    energyLevel: 'red',
+    userDemandLevel: 'low',
+    sortOrder: 30,
   ),
-  HomeCareTask(
+  HomeCareTaskSeed(
     key: 'yellow_dishes',
     title: 'Wash or load the dishes',
-    energyLevel: 'yellow',
+    userDemandLevel: 'medium',
+    sortOrder: 40,
   ),
-  HomeCareTask(
+  HomeCareTaskSeed(
     key: 'yellow_laundry',
     title: 'Start or fold one load of laundry',
-    energyLevel: 'yellow',
+    userDemandLevel: 'medium',
+    sortOrder: 50,
   ),
-  HomeCareTask(
+  HomeCareTaskSeed(
     key: 'yellow_reset',
     title: 'Do a 10-minute room reset',
-    energyLevel: 'yellow',
+    userDemandLevel: 'medium',
+    sortOrder: 60,
   ),
-  HomeCareTask(
+  HomeCareTaskSeed(
     key: 'green_kitchen',
     title: 'Reset the kitchen',
-    energyLevel: 'green',
+    userDemandLevel: 'high',
+    sortOrder: 70,
   ),
-  HomeCareTask(
+  HomeCareTaskSeed(
     key: 'green_laundry',
     title: 'Complete one load of laundry',
-    energyLevel: 'green',
+    userDemandLevel: 'high',
+    sortOrder: 80,
   ),
-  HomeCareTask(
+  HomeCareTaskSeed(
     key: 'green_clean',
     title: 'Clean one room or zone',
-    energyLevel: 'green',
+    userDemandLevel: 'high',
+    sortOrder: 90,
   ),
 ];
