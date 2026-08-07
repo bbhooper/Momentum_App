@@ -252,8 +252,6 @@ class _PageHeading extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 20),
-        Icon(Icons.dark_mode_outlined, size: 34, color: colors.secondaryInk),
       ],
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/theme/momentum_palette.dart';
+
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.currentPath, required this.child});
 
@@ -17,12 +19,37 @@ class AppShell extends StatelessWidget {
     '/diary',
   ];
 
+  bool get _isSettingsPath => currentPath.startsWith('/settings');
+
   @override
   Widget build(BuildContext context) {
+    if (_isSettingsPath) {
+      return Scaffold(body: child);
+    }
+
     final selectedIndex = _selectedIndex(currentPath);
+    final colors = context.momentumColors;
 
     return Scaffold(
-      body: child,
+      body: Stack(
+        children: [
+          Positioned.fill(child: child),
+          Positioned(
+            top: MediaQuery.paddingOf(context).top + 8,
+            right: 12,
+            child: Material(
+              color: colors.card.withValues(alpha: 0.92),
+              shape: const CircleBorder(),
+              elevation: 0,
+              child: IconButton(
+                tooltip: 'Settings',
+                onPressed: () => context.push('/settings'),
+                icon: const Icon(Icons.settings_outlined),
+              ),
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) {

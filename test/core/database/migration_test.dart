@@ -4,11 +4,12 @@ import 'package:momentum/core/database/app_database.dart';
 
 import '../../generated_migrations/schema.dart';
 
-/// Verifies that existing Momentum databases can be upgraded safely.
+/// Verifies that older Momentum databases can be upgraded to the current
+/// schema without leaving the database structure inconsistent.
 ///
-/// Tests both supported upgrade paths:
-/// - version 1 databases upgrade through version 2 to version 3
-/// - version 2 databases upgrade directly to version 3
+/// The generated migration helper must contain the historical schema snapshot
+/// being tested plus a v8 snapshot. See the bundle README for the Drift
+/// commands.
 void main() {
   late SchemaVerifier verifier;
 
@@ -16,19 +17,26 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  test('upgrades database schema from version 1 to version 3', () async {
-    final connection = await verifier.startAt(1);
+  Future<void> expectUpgradeToV8(int fromVersion) async {
+    final connection = await verifier.startAt(fromVersion);
     final database = AppDatabase(connection);
 
-    await verifier.migrateAndValidate(database, 3);
-    await database.close();
+    try {
+      await verifier.migrateAndValidate(database, 8);
+    } finally {
+      await database.close();
+    }
+  }
+
+  test('upgrades database schema from version 1 to version 8', () async {
+    await expectUpgradeToV8(1);
   });
 
-  test('upgrades database schema from version 2 to version 3', () async {
-    final connection = await verifier.startAt(2);
-    final database = AppDatabase(connection);
+  test('upgrades database schema from version 2 to version 8', () async {
+    await expectUpgradeToV8(2);
+  });
 
-    await verifier.migrateAndValidate(database, 3);
-    await database.close();
+  test('upgrades database schema from version 3 to version 8', () async {
+    await expectUpgradeToV8(3);
   });
 }

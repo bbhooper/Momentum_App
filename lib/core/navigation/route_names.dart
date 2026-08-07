@@ -10,4 +10,6 @@ class RouteNames {
   static const String diary = 'diary';
   static const String insights = 'insights';
   static const String settings = 'settings';
+  static const String displaySettings = 'display-settings';
+  static const String homeCareSettings = 'home-care-settings';
 }

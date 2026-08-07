@@ -17,74 +17,189 @@ class CarePage extends ConsumerStatefulWidget {
   ConsumerState<CarePage> createState() => _CarePageState();
 }
 
-class _CarePageState extends ConsumerState<CarePage>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabs;
+class _CarePageState extends ConsumerState<CarePage> {
+  int _selectedTab = 0;
   final _notesController = TextEditingController();
   String? _loadedDate;
 
   @override
-  void initState() {
-    super.initState();
-    _tabs = TabController(length: 2, vsync: this);
-  }
-
-  @override
   void dispose() {
-    _tabs.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.momentumColors;
     final care = ref.watch(careFormControllerProvider);
-    return TexturedPage(
-      child: care.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => Center(
-          child: FilledButton(
-            onPressed: () => ref.invalidate(careFormControllerProvider),
-            child: const Text('Try again'),
+    return Scaffold(
+      body: TexturedPage(
+        textureAsset: 'assets/images/notebook_paper03.jpg',
+        child: care.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, _) => Center(
+            child: FilledButton(
+              onPressed: () => ref.invalidate(careFormControllerProvider),
+              child: const Text('Try again'),
+            ),
           ),
-        ),
-        data: (form) {
-          if (_loadedDate != form.date.dateKey) {
-            _loadedDate = form.date.dateKey;
-            _notesController.text = form.moodNotes;
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Care', style: Theme.of(context).textTheme.headlineLarge),
-              const SizedBox(height: 4),
-              Text(
-                'A gentle check-in for you and your space.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: context.momentumColors.secondaryInk,
+          data: (form) {
+            if (_loadedDate != form.date.dateKey) {
+              _loadedDate = form.date.dateKey;
+              _notesController.text = form.moodNotes;
+            }
+            return ListView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.paddingOf(context).bottom + 96,
+              ),
+              children: [
+                _PageHeading(colors: colors),
+                const SizedBox(height: 22),
+                _CareTabSelector(
+                  selectedIndex: _selectedTab,
+                  onSelected: (index) => setState(() => _selectedTab = index),
                 ),
+                const SizedBox(height: 18),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  child: _selectedTab == 0
+                      ? KeyedSubtree(
+                          key: const ValueKey('self-care-tab'),
+                          child: _SelfCareTab(
+                            form: form,
+                            notesController: _notesController,
+                          ),
+                        )
+                      : KeyedSubtree(
+                          key: const ValueKey('home-care-tab'),
+                          child: _HomeCareTab(form: form),
+                        ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _PageHeading extends StatelessWidget {
+  const _PageHeading({required this.colors});
+
+  final MomentumPalette colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Care', style: Theme.of(context).textTheme.displaySmall),
+        const SizedBox(height: 6),
+        Text(
+          'A gentle check-in for you and your space.',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: colors.secondaryInk),
+        ),
+      ],
+    );
+  }
+}
+
+class _CareTabSelector extends StatelessWidget {
+  const _CareTabSelector({
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.momentumColors;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.divider),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _CareTabButton(
+              label: 'Self Care',
+              icon: Icons.favorite_border_rounded,
+              isSelected: selectedIndex == 0,
+              onTap: () => onSelected(0),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _CareTabButton(
+              label: 'Home Care',
+              icon: Icons.home_outlined,
+              isSelected: selectedIndex == 1,
+              onTap: () => onSelected(1),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CareTabButton extends StatelessWidget {
+  const _CareTabButton({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.momentumColors;
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          height: 44,
+          decoration: BoxDecoration(
+            color: isSelected ? colors.accent : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 19,
+                color: isSelected ? colors.accentInk : colors.secondaryInk,
               ),
-              const SizedBox(height: 16),
-              TabBar(
-                controller: _tabs,
-                tabs: const [
-                  Tab(text: 'Self Care'),
-                  Tab(text: 'Home Care'),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabs,
-                  children: [
-                    _SelfCareTab(form: form, notesController: _notesController),
-                    _HomeCareTab(form: form),
-                  ],
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: isSelected ? colors.accentInk : colors.secondaryInk,
                 ),
               ),
             ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -99,47 +214,72 @@ class _SelfCareTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(careFormControllerProvider.notifier);
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 24),
+    return Column(
       children: [
         MomentumCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'How are you feeling?',
-                style: Theme.of(context).textTheme.titleLarge,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'How are you feeling?',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                  ),
+                  Icon(
+                    Icons.favorite_outline_rounded,
+                    size: 30,
+                    color: context.momentumColors.secondaryInk,
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 'Choose the closest fit — it does not need to be exact.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 20),
               _MoodScale(
                 value: form.moodScore,
                 enabled: !form.isBusy,
                 onChanged: controller.setMoodScore,
               ),
-              const SizedBox(height: 18),
-              TextField(
+              const SizedBox(height: 20),
+              Text(
+                'Notes (optional)',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
                 controller: notesController,
                 enabled: !form.isBusy,
                 minLines: 3,
                 maxLines: 5,
+                textCapitalization: TextCapitalization.sentences,
                 onChanged: controller.setMoodNotes,
                 decoration: const InputDecoration(
-                  labelText: 'Mood notes (optional)',
                   hintText: 'Anything affecting how you feel today?',
-                  alignLabelWithHint: true,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: form.isBusy ? null : controller.saveMood,
-                  child: Text(
+                width: 190,
+                child: FilledButton.icon(
+                  onPressed: form.isBusy
+                      ? null
+                      : () async {
+                          FocusManager.instance.primaryFocus?.unfocus();
+                          await controller.saveMood();
+                        },
+                  icon: form.isSaving
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.bookmark_border_rounded),
+                  label: Text(
                     form.isSaving
                         ? 'Saving…'
                         : form.hasSavedMood
@@ -151,21 +291,32 @@ class _SelfCareTab extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         MomentumCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'How is your energy now?',
-                style: Theme.of(context).textTheme.titleLarge,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'How is your energy now?',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                  ),
+                  Icon(
+                    Icons.bolt_rounded,
+                    size: 30,
+                    color: context.momentumColors.secondaryInk,
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 'Check in whenever it is useful. Each response is saved automatically.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 20),
               _EnergyPicker(
                 current: form.currentEnergy,
                 enabled: !form.isBusy,
@@ -253,15 +404,28 @@ class _HomeCareTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(careFormControllerProvider.notifier);
     final current = form.currentEnergy;
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 24),
+    return Column(
       children: [
         MomentumCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Home Care', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Home Care',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                  ),
+                  Icon(
+                    Icons.home_outlined,
+                    size: 30,
+                    color: context.momentumColors.secondaryInk,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
               if (current == null)
                 Text(
                   'Choose your current energy in Self Care to see a suitable task list.',
@@ -293,7 +457,7 @@ class _HomeCareTab extends ConsumerWidget {
           ),
         ),
         if (form.completions.isNotEmpty) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           MomentumCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,18 +541,87 @@ class _EnergyPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final level in EnergyLevel.values)
-          ChoiceChip(
-            label: Text(level.label),
-            tooltip: level.description,
-            selected: current == level,
-            onSelected: enabled ? (_) => onChanged(level) : null,
+    final colors = context.momentumColors;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.notebook.withValues(alpha: 0.62),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.divider),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          children: [
+            for (var index = 0; index < EnergyLevel.values.length; index++)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: _EnergyButton(
+                    level: EnergyLevel.values[index],
+                    selected: current == EnergyLevel.values[index],
+                    enabled: enabled,
+                    onTap: () => onChanged(EnergyLevel.values[index]),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EnergyButton extends StatelessWidget {
+  const _EnergyButton({
+    required this.level,
+    required this.selected,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final EnergyLevel level;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.momentumColors;
+    return Semantics(
+      button: true,
+      selected: selected,
+      excludeSemantics: true,
+      label: '${level.label} energy, ${level.description}',
+      child: Tooltip(
+        message: level.description,
+        child: InkWell(
+          onTap: enabled ? onTap : null,
+          borderRadius: BorderRadius.circular(9),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            height: 48,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            decoration: BoxDecoration(
+              color: selected ? colors.accent : Colors.transparent,
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(
+                color: selected ? colors.accent : colors.divider,
+              ),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                level.label,
+                maxLines: 1,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: selected ? colors.accentInk : colors.secondaryInk,
+                ),
+              ),
+            ),
           ),
-      ],
+        ),
+      ),
     );
   }
 }
@@ -403,50 +636,85 @@ class _MoodScale extends StatelessWidget {
   final bool enabled;
   final ValueChanged<int> onChanged;
   static const _items = [
-    (1, '😞', 'Low'),
-    (2, '🙁', 'Flat'),
-    (3, '😐', 'Okay'),
-    (4, '🙂', 'Good'),
-    (5, '😊', 'Great'),
+    (1, Icons.sentiment_very_dissatisfied_outlined, 'Low'),
+    (2, Icons.sentiment_dissatisfied_outlined, 'Flat'),
+    (3, Icons.sentiment_neutral_outlined, 'Okay'),
+    (4, Icons.sentiment_satisfied_outlined, 'Good'),
+    (5, Icons.sentiment_very_satisfied_outlined, 'Great'),
   ];
 
   @override
   Widget build(BuildContext context) {
     final colors = context.momentumColors;
-    return Row(
-      children: [
-        for (final item in _items)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3),
-              child: InkWell(
-                onTap: enabled ? () => onChanged(item.$1) : null,
-                borderRadius: BorderRadius.circular(12),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  decoration: BoxDecoration(
-                    color: value == item.$1
-                        ? colors.accent
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: colors.divider),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(item.$2, style: const TextStyle(fontSize: 20)),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.$3,
-                        style: Theme.of(context).textTheme.labelSmall,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.notebook.withValues(alpha: 0.62),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.divider),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          children: [
+            for (final item in _items)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Semantics(
+                    button: true,
+                    selected: value == item.$1,
+                    excludeSemantics: true,
+                    label: 'Mood, ${item.$1} of 5, ${item.$3}',
+                    child: InkWell(
+                      onTap: enabled ? () => onChanged(item.$1) : null,
+                      borderRadius: BorderRadius.circular(9),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 160),
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: value == item.$1
+                              ? colors.accent
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(
+                            color: value == item.$1
+                                ? colors.accent
+                                : colors.divider,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              item.$2,
+                              size: 22,
+                              color: value == item.$1
+                                  ? colors.accentInk
+                                  : colors.secondaryInk,
+                            ),
+                            const SizedBox(height: 3),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                item.$3,
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: value == item.$1
+                                          ? colors.accentInk
+                                          : colors.secondaryInk,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-      ],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -455,10 +723,34 @@ class _Message extends StatelessWidget {
   const _Message({this.message});
   final String? message;
   @override
-  Widget build(BuildContext context) => message == null
-      ? const SizedBox.shrink()
-      : Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: Text(message!, textAlign: TextAlign.center),
-        );
+  Widget build(BuildContext context) {
+    if (message == null) return const SizedBox.shrink();
+    final colors = context.momentumColors;
+    final isSuccess = const {
+      'Self care saved.',
+      'Energy updated.',
+      'Energy entry removed.',
+      'Mood entry deleted.',
+    }.contains(message);
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isSuccess
+            ? colors.accent.withValues(alpha: 0.28)
+            : Theme.of(context).colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isSuccess ? Icons.check_circle_outline : Icons.info_outline,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Text(message!)),
+        ],
+      ),
+    );
+  }
 }

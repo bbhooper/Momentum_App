@@ -1,15 +1,17 @@
 import 'package:go_router/go_router.dart';
 
 import '../../app/app_shell.dart';
-import '../../features/home/presentation/pages/home_page.dart';
-import '../../features/sleep/presentation/pages/sleep_page.dart';
-import '../../features/fuel/presentation/pages/fuel_page.dart';
 import '../../features/care/presentation/pages/care_page.dart';
+import '../../features/diary/presentation/pages/diary_page.dart';
+import '../../features/fuel/presentation/pages/fuel_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/insights/presentation/pages/insights_page.dart';
 import '../../features/move/presentation/pages/move_page.dart';
 import '../../features/rewards/presentation/pages/rewards_page.dart';
-import '../../features/diary/presentation/pages/diary_page.dart';
-import '../../features/insights/presentation/pages/insights_page.dart';
+import '../../features/settings/presentation/pages/display_theme_settings_page.dart';
+import '../../features/settings/presentation/pages/home_care_settings_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/sleep/presentation/pages/sleep_page.dart';
 import 'route_names.dart';
 
 class AppRouter {
@@ -64,6 +66,18 @@ class AppRouter {
             path: '/settings',
             name: RouteNames.settings,
             builder: (_, _) => const SettingsPage(),
+            routes: [
+              GoRoute(
+                path: 'display',
+                name: RouteNames.displaySettings,
+                builder: (_, _) => const DisplayThemeSettingsPage(),
+              ),
+              GoRoute(
+                path: 'home-care',
+                name: RouteNames.homeCareSettings,
+                builder: (_, _) => const HomeCareSettingsPage(),
+              ),
+            ],
           ),
         ],
       ),
